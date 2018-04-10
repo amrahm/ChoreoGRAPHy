@@ -22,24 +22,74 @@
 	--duration-fade: .4s;
 }
 
-html {
+html, body, main {
+    margin: 0;
+    height: 100%;
 }
 
-body {
+main {
+    display: grid;
+    justify-content: stretch;
+    align-items: stretch;   
+    grid-gap: 10px 0px;
+    grid-template:
+        [row1-start] "groups . . header header header header header" 10px [row1-end]
+        [row2-start] "groups . . stageTitle . . . ." 40px [row2-end]
+        [row3-start] "groups . canvas canvas canvas . addDancer ." 50px [row3-end]
+        [row4-start] "groups . canvas canvas canvas . removeDancer ." 50px [row4-end]
+        [row5-start] "groups . canvas canvas canvas . formationComments formationComments" auto [row5-end]
+        [row6-start] "groups . canvas canvas canvas . formationComments formationComments" auto [row6-end]
+        [row7-start] "groups timeline timeline timeline timeline timeline timeline timeline" 160px [row7-end]
+        [row8-start] "groups music music music music music music music" 50px [row8-end]
+        / 5fr 20px 8fr 8fr 8fr 20px 4fr 1fr 20px;
 }
 
-header {
+div { /* TODO: Remove this */
+    border: dashed 1px black;
+    border-radius: 10px;
+    text-align: center;
 }
 
 .name1 {
+    grid-area: header;
     color: var(--color-blue);
     font-family: 'Comfortaa', cursive;
     font-style: italic;
     text-align: center;
-    font-size: 300%;
-    margin: 0px 0px 10px 0px;
+    font-size: 150%;
+    text-align: end;
+    border: none;
 }
 .name2 {
     font-family: 'Julius Sans One', sans-serif;
     font-weight: bold;
+}
+
+#stageView {
+    border: solid 2px black;
+    grid-area: canvas;
+    height: 100%;
+    width: 100%;
+}
+
+#groups {
+    grid-area: groups;
+}
+#stageTitle {
+    grid-area: stageTitle;
+}
+#addDancer {
+    grid-area: addDancer;
+}
+#removeDancer {
+    grid-area: removeDancer;
+}
+#formationComments {
+    grid-area: formationComments;
+}
+#timeline {
+    grid-area: timeline;
+}
+#music {
+    grid-area: music;
 }
