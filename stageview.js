@@ -1,16 +1,9 @@
+/** Implements the top and front stage views, with adding and removing dancers */
 class StageView extends EventTarget {
-    constructor(dom){
-        super();
-        this.dom = dom;
+    addDancer(){
+        console.log("ADD");
     }
-
-    domContentLoaded(){
-        dom.stageView = Util.one("#stageView");
-        dom.addDancer = Util.one("#addDancer");
-        dom.removeDancer = Util.one("#removeDancer");
-
-        dom.addDancer.addEventListener("click", () => {
-            console.log("ADD");
-        });
+    removeDancer(){
+        console.log("REMOVE");
     }
 }

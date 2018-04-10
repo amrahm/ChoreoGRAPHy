@@ -29,7 +29,7 @@ main {
     align-items: stretch;   
     grid-gap: 10px 0px;
     grid-template:
-        [row1-start] "groups . . header header header header header" 10px [row1-end]
+        [row1-start] "groups . . . header header header header" 10px [row1-end]
         [row2-start] "groups . . stageTitle . . . ." 40px [row2-end]
         [row3-start] "groups . canvas canvas canvas . addDancer ." 50px [row3-end]
         [row4-start] "groups . canvas canvas canvas . removeDancer ." 50px [row4-end]
@@ -42,7 +42,8 @@ main {
 
 
 #stageDrawing {
-    display: none; /* TODO: Remove this if we want to start off with stage drawing*/
+    /* TODO: Remove display line if we want to start off with stage drawing*/
+    display: none;
     grid-area: 1 / 1 / 9 / 10;
     background: var(--color-light-gray);
     z-index: 1;
@@ -61,7 +62,7 @@ div { /* TODO: Remove this */
     font-family: 'Comfortaa', cursive;
     font-style: italic;
     text-align: center;
-    font-size: 150%;
+    font-size: 200%;
     text-align: end;
     border: none;
 }
@@ -69,9 +70,12 @@ div { /* TODO: Remove this */
     font-family: 'Julius Sans One', sans-serif;
     font-weight: bold;
 }
+.name3 {
+    font-family: sans-serif;
+}
 
 #stageView {
-    border: solid 2px black;
+    outline: solid 2.5px black;
     grid-area: canvas;
     height: 100%;
     width: 100%;
@@ -91,6 +95,7 @@ div { /* TODO: Remove this */
 }
 #formationComments {
     grid-area: formationComments;
+    margin-top: 20px;
 }
 #timeline {
     grid-area: timeline;
