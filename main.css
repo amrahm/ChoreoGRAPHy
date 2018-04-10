@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css?family=Comfortaa|Julius+Sans+One');
+/* Global variables */
+:root {
+	--color-light-gray: hsl(220, 10%, 85%);
+	--color-less-light-gray: hsl(220, 10%, 68%);
+	--color-red: hsl(0, 80%, 48%);
+	--color-dark-red: hsl(0, 76%, 37%);
+	--color-light-red: hsl(0, 54%, 89%);
+	--color-yellow: gold;
+	--color-green: hsl(85, 90%, 37%);
+	--color-light-green: hsl(85, 50%, 57%);
+	--color-dark-green: hsl(85, 88%, 27%);
+	--color-orange: hsl(30, 100%, 50%);
+	--color-dark-orange: hsl(30, 100%, 37%);
+	--color-light-blue: hsl(210, 68%, 60%);
+	--color-blue: hsl(210, 80%, 45%);
+	--color-dark-blue: hsl(210, 76%, 36%);
+	--color-light-purple: rgb(193, 68, 193);
+	--color-purple: purple;
+	--color-dark-purple: rgb(92, 0, 92);
+	--duration-move: .1s; /* Duration to move by 1 cell */
+	--duration-fade: .4s;
+}
+
+html {
+}
+
+body {
+}
+
+header {
+}
+
+.name1 {
+    color: var(--color-blue);
+    font-family: 'Comfortaa', cursive;
+    font-style: italic;
+    text-align: center;
+    font-size: 300%;
+    margin: 0px 0px 10px 0px;
+}
+.name2 {
+    font-family: 'Julius Sans One', sans-serif;
+    font-weight: bold;
+}

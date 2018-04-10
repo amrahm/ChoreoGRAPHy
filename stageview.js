@@ -1,0 +1,3 @@
+class StageView extends EventTarget {
+
+}
