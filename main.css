@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css?family=Comfortaa|Julius+Sans+One');
-/* Global variables */
-:root {
+:root { /* Global variables */
 	--color-light-gray: hsl(220, 10%, 85%);
 	--color-less-light-gray: hsl(220, 10%, 68%);
 	--color-red: hsl(0, 80%, 48%);
@@ -18,15 +17,12 @@
 	--color-light-purple: rgb(193, 68, 193);
 	--color-purple: purple;
 	--color-dark-purple: rgb(92, 0, 92);
-	--duration-move: .1s; /* Duration to move by 1 cell */
-	--duration-fade: .4s;
 }
 
 html, body, main {
     margin: 0;
     height: 100%;
 }
-
 main {
     display: grid;
     justify-content: stretch;
@@ -43,6 +39,15 @@ main {
         [row8-start] "groups music music music music music music music" 50px [row8-end]
         / 5fr 20px 8fr 8fr 8fr 20px 4fr 1fr 20px;
 }
+
+
+#stageDrawing {
+    display: none; /* TODO: Remove this if we want to start off with stage drawing*/
+    grid-area: 1 / 1 / 9 / 10;
+    background: var(--color-light-gray);
+    z-index: 1;
+}
+
 
 div { /* TODO: Remove this */
     border: dashed 1px black;

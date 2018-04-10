@@ -13,6 +13,7 @@ PS3 - CandyCrush UI
 
     <!-- Load style sheets -->
     <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="stageDrawing.css">
     <link rel="stylesheet" href="stageView.css">
 
     <!-- Load any supplemental Javascript libraries here -->
@@ -22,6 +23,7 @@ PS3 - CandyCrush UI
     <script src="https://unpkg.com/event-target@latest/min.js"></script>
 
     <script src="util.js"></script>
+    <script src="stageDrawing.js"></script>
     <script src="stageView.js"></script>
     <script src="main.js"></script>
 
@@ -30,11 +32,14 @@ PS3 - CandyCrush UI
 
 <body>
     <main>
+        <div id="stageDrawing">
+            <button id="confirmStage">confirm</button>
+        </div>
         <div class="name1">Choreo<span class="name2">GRAPH</span>y&thinsp;™</div>
         <div id="groups">Groups</div>
         <div id="stageTitle">Stage Title</div>
-        <div id="addDancer">Add Dancer</div>
-        <div id="removeDancer">Remove Dancer</div>
+        <button id="addDancer">Add Dancer</button>
+        <button id="removeDancer">Remove Dancer</button>
         <div id="formationComments">Formation Comments</div>
         <div id="timeline">timeline</div>
         <div id="music">music</div>
