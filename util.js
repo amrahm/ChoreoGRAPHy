@@ -120,5 +120,12 @@ class Util {
 			top: rect.top + win.scrollY,
 			left: rect.left + win.scrollX
 		};
-	}
+    }
+    
+    /** Get a computed style's property value
+     * @param {Element} element the HTML element to get the style attribute from
+     * @param {string} property the CSS property */
+    static getStyleValue(element, property) {
+        return window.getComputedStyle(element, null).getPropertyValue(property);
+    }
 }
