@@ -1,30 +1,29 @@
 /** HTML Canvas context, but transformations are tracked so that points (e.g. click points) can be transformed as well.
  * Based on https://codepen.io/techslides/pen/zowLd */
- let TrackedContext = {
-    constructor(context) {
+let TrackedContext = {
+    /** constructor */
+    ctor(context) {
         this.ctx = context; //initialized in main.js
         this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         this.xform = this.svg.createSVGMatrix();
 
         this.savedTransforms = [];
     },
-    printTest() {
-        console.log("I WAS CALLED");
-    },
 
+    /** Returns a copy of the current transformation matrix */
     getTransform() {
         let c = this.svg.createSVGMatrix();
         c.a = this.xform.a, c.b = this.xform.b, c.c = this.xform.c, c.d = this.xform.d, c.e = this.xform.e, c.f = this.xform.f;
         return c;
-    }
-,
+    },
+
     save() {
-        savedTransforms.push(this.xform.translate(0, 0));
+        this.savedTransforms.push(this.xform.translate(0, 0));
         this.ctx.save();
     },
 
     restore() {
-        this.xform = savedTransforms.pop();
+        this.xform = this.savedTransforms.pop();
         this.ctx.restore();
     },
 
@@ -56,9 +55,36 @@
         this.ctx.setTransform(a, b, c, d, e, f);
     },
 
+    /** Returns the point after applying all the transformations the canvas has undergone */
     transformedPoint(x, y) {
         let pt = this.svg.createSVGPoint();
         pt.x = x, pt.y = y;
         return pt.matrixTransform(this.xform.inverse());
     }
+}
+
+/** This crazy shit lets us extend the canvas to include the above operations */
+let getTrackedContext = (ctx) => {
+    let trackedContext = new Proxy(TrackedContext, {
+        get(target, prop, receiver) {
+            if (target[prop] === undefined) {
+                return (...args) => {
+                    return target.ctx[prop].apply(target.ctx, args);
+                };
+            } else {
+                return target[prop];
+            }
+        },
+        set(target, prop, value) {
+            if (prop == "ctx" || prop == "svg" || prop == "xform" || prop == "savedTransforms") {
+                return Reflect.set(...arguments);
+            } else {
+                var args = Array.prototype.slice.call(arguments, 2, arguments.length - 1);
+                target.ctx[prop] = args;
+                return true;
+            }
+        }
+    });
+    trackedContext.ctor(ctx);
+    return trackedContext;
 }

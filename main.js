@@ -15,7 +15,9 @@ Util.events(document, {
         dom.resetView = Util.one("#resetView");
         dom.stageView = Util.one("#stageView");
 
-        stageView.ctx = dom.stageView.getContext('2d', { alpha: false });
+        
+
+        stageView.ctx = getTrackedContext(dom.stageView.getContext('2d', { alpha: false }));
 
         dom.confirmStage.addEventListener("click", () => stageDrawing.doneDrawing());
         dom.addDancer.addEventListener("click", () => stageView.addDancer());
@@ -24,7 +26,6 @@ Util.events(document, {
         dom.zoomOut.addEventListener("click", () => stageView.zoomAnim(20, -1.3));
         dom.resetView.addEventListener("click", () => stageView.resetView());
 
-        stageView.trackTransforms();
         stageView.respondCanvas(true);
         window.onresize = () => stageView.respondCanvas();
         Util.events(dom.stageView, {
