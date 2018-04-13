@@ -1,5 +1,7 @@
 //TODO Marqee selection. Shouldn't be too hard, but will have to make dragging and selected be arrays
-//TODO add direction to dancers
+//TODO Zoom min and max
+//TODO Zoom in, out, and reset view buttons
+//TODO Undo/Redo
 /** Implements the top and front stage views, with adding and removing dancers */
 class StageView extends EventTarget {
     constructor() {
@@ -7,34 +9,55 @@ class StageView extends EventTarget {
         this.ctx = null; //initialized in main.js
         this.width = null; //initialized in respondCanvas()
         this.height = null; //^
-        this.dancerSize = 30;
-        this.zoom = 1;
+        this.dancerSize = 40;
+        this.scaleFactor = 1.1;
+        this.pageDrag = null; //dragging page
         this.dragging = null; //dragged dancer
-        this.selected = null; //^ but selected
-        this.dancers = [] //element format: {name: "name", X: 5.6, Y: 20}
+        this.rotating = null; //rotating dancer
+        this.selected = null; //selected dancer
+        this.dancers = [] //element format: {name: "name", x: 5.6, y: 20, angle: 37}
         //---TESTING---
-        // this.dancers.push({ name: "name", X: 0, Y: 0 });
-        // this.dancers.push({ name: "name", X: 500, Y: 0 });
-        // this.dancers.push({ name: "name", X: 1000, Y: 0 });
-        // this.dancers.push({ name: "name", X: 0, Y: 500 });
-        // this.dancers.push({ name: "name", X: 500, Y: 500 });
-        // this.dancers.push({ name: "name", X: 1000, Y: 500 });
-        // this.dancers.push({ name: "name", X: 0, Y: 1000 });
-        // this.dancers.push({ name: "name", X: 500, Y: 1000 });
-        // this.dancers.push({ name: "name", X: 1000, Y: 1000 });
+        // this.dancers.push({ name: "name", x: 0, y: 0 });
+        // this.dancers.push({ name: "name", x: 500, y: 0 });
+        // this.dancers.push({ name: "name", x: 1000, y: 0 });
+        // this.dancers.push({ name: "name", x: 0, y: 500 });
+        // this.dancers.push({ name: "name", x: 500, y: 500 });
+        // this.dancers.push({ name: "name", x: 1000, y: 500 });
+        // this.dancers.push({ name: "name", x: 0, y: 1000 });
+        // this.dancers.push({ name: "name", x: 500, y: 1000 });
+        // this.dancers.push({ name: "name", x: 1000, y: 1000 });
     }
 
-    respondCanvas() {
-        let old = this.width;
+    /** Respond to window resize so that drawings don't get distorted. */
+    respondCanvas(firstTime = false) {
+        this.ctx.printTest();
+        let oldC = this.ctx.transformedPoint(this.width / 2, this.height / 2);
+        let oldT = this.ctx.getTransform();
+        this.ctx.setTransform();
         this.width = parseInt(Util.getStyleValue(dom.stageView, "width"));
         this.height = parseInt(Util.getStyleValue(dom.stageView, "height"));
         dom.stageView.setAttribute("width", this.width);
         dom.stageView.setAttribute("height", this.height);
+        if (!firstTime) {
+            this.ctx.transform(oldT.a, oldT.b, oldT.c, oldT.d, oldT.e, oldT.f);
+            let newC = this.ctx.transformedPoint(this.width / 2, this.height / 2);
+            this.ctx.translate(newC.x - oldC.x, newC.y - oldC.y); //FIXME
+        }
         this.draw();
     }
 
+    /** Draw the stage, dancers, etc. */
     draw() {
+        let p1 = this.ctx.transformedPoint(0, 0);
+        let p2 = this.ctx.transformedPoint(this.width, this.height);
+        console.log("TRYNA CLEAR");
+        this.ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+
+        this.ctx.save();
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.clearRect(0, 0, this.width, this.height);
+        this.ctx.restore();
+
         this.dancers.forEach(dancer => {
             if (dancer == this.dragging) {
                 this.ctx.shadowBlur = 20;
@@ -45,28 +68,62 @@ class StageView extends EventTarget {
             } else {
                 this.ctx.shadowBlur = 0;
             }
+            //:::MAIN CIRCLE
+            this.ctx.fillStyle = 'rgb(60, 60, 60)';
+            this.ctx.beginPath();
+            this.ctx.arc(dancer.x, dancer.y, this.dancerSize, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.shadowBlur = 0;
+            this.ctx.strokeStyle = 'rgb(200, 200, 200)';
+            this.ctx.stroke();
+
+            ///:::DRAG HANDLE
+
+            this.ctx.save();
+            this.ctx.translate(dancer.x, dancer.y);
+            this.ctx.rotate(dancer.angle);
+
+            this.ctx.fillStyle = 'rgb(140, 140, 140)';
+            dancer.dirArrow = new Path2D();
+            dancer.dirArrow.arc(0, 0, this.dancerSize, 0, Math.PI);
+            // dancer.dirArrow.moveTo(this.dancerSize, 0);
+            dancer.dirArrow.bezierCurveTo(-this.dancerSize * .4, this.dancerSize * .55,
+                this.dancerSize * .4, this.dancerSize * .55, this.dancerSize, 0);
+            // dancer.dirArrow.closePath();
+            this.ctx.fill(dancer.dirArrow);
+            this.ctx.strokeStyle = 'rgb(20, 20, 20)';
+            this.ctx.stroke(dancer.dirArrow);
+
+            //::EYES
+            this.ctx.fillStyle = 'rgb(250, 250, 250)';
+            this.ctx.beginPath();
+            this.ctx.arc(this.dancerSize * .45, this.dancerSize * .6, this.dancerSize / 5, 0, Math.PI * 2);
+            this.ctx.arc(-this.dancerSize * .45, this.dancerSize * .6, this.dancerSize / 5, 0, Math.PI * 2);
+            this.ctx.fill();
             this.ctx.fillStyle = 'rgb(0, 0, 0)';
             this.ctx.beginPath();
-            this.ctx.arc(dancer.X, dancer.Y, this.dancerSize, 0, Math.PI * 2, true);
+            this.ctx.arc(this.dancerSize * .45, this.dancerSize * .65, this.dancerSize / 10, 0, Math.PI * 2);
+            this.ctx.arc(-this.dancerSize * .45, this.dancerSize * .65, this.dancerSize / 10, 0, Math.PI * 2);
             this.ctx.fill();
+
+            this.ctx.restore();
         });
     }
 
     addDancer() {
-        let x = this.width / 2;
-        let y = this.height / 2;
+        let pt = this.ctx.transformedPoint(this.width / 2, this.height / 2);
         let safe = true;
         do { //move to non-overlapping location
             safe = true;
             this.dancers.forEach(dancer => {
-                if ((dancer.X - x) ** 2 + (dancer.Y - y) ** 2 < (this.dancerSize * 2) ** 2) {
+                if ((dancer.x - pt.x) ** 2 + (dancer.y - pt.y) ** 2 < (this.dancerSize * 2) ** 2) {
                     safe = false;
-                    x += this.dancerSize * (Math.random() < 0.5 ? -1 : 1);
-                    y += this.dancerSize * (Math.random() < 0.5 ? -1 : 1);
+                    pt.x += this.dancerSize * (Math.random() < 0.5 ? -1 : 1);
+                    pt.y += this.dancerSize * (Math.random() < 0.5 ? -1 : 1);
                 }
             });
         } while (!safe);
-        this.dancers.push({ name: "name", X: x, Y: y });
+        this.dancers.push({ name: "name", x: pt.x, y: pt.y, angle: 0 });
         this.draw();
     }
     removeDancer() {
@@ -76,143 +133,128 @@ class StageView extends EventTarget {
         }
     }
 
-    mousedown(mouse) {
-        for (let i = this.dancers.length - 1; i >= 0; i--) { //backwards so selected is chosen first
-            let dancer = this.dancers[i];
-            this.oldX = mouse.X;
-            this.oldY = mouse.Y;
-            if ((dancer.X - mouse.X) ** 2 + (dancer.Y - mouse.Y) ** 2 < (this.dancerSize) ** 2) {
-                this.dragging = dancer;
-                if (this.selected != dancer) this.selected = null;
-                this.dragOffsetX = dancer.X - mouse.X;
-                this.dragOffsetY = dancer.Y - mouse.Y;
-                this.draw();
-                break;
+    mousedown(mouse, buttons) {
+        this.lastX = mouse.x;
+        this.lastY = mouse.y;
+        mouse = this.ctx.transformedPoint(mouse.x, mouse.y);
+        if (buttons == 1) { //left click
+            for (let i = this.dancers.length - 1; i >= 0; i--) { //backwards so selected is chosen first
+                let dancer = this.dancers[i];
+                this.oldX = mouse.x;
+                this.oldY = mouse.y;
+
+                this.ctx.save();
+                this.ctx.translate(dancer.x, dancer.y);
+                this.ctx.rotate(dancer.angle);
+                if (this.ctx.isPointInPath(dancer.dirArrow, this.lastX, this.lastY)) {
+                    this.moveDancerToEnd(dancer, i);
+                    if (this.selected != dancer) this.selected = null;
+                    this.rotating = dancer;
+                    this.ctx.restore();
+                    return;
+                }
+                this.ctx.restore();
+
+                if ((dancer.x - mouse.x) ** 2 + (dancer.y - mouse.y) ** 2 < (this.dancerSize) ** 2) {
+                    this.moveDancerToEnd(dancer, i);
+                    if (this.selected != dancer) this.selected = null;
+                    this.dragging = dancer;
+                    this.dragOffsetX = dancer.x - mouse.x;
+                    this.dragOffsetY = dancer.y - mouse.y;
+                    this.draw();
+                    return;
+                }
+                //No dancer was clicked on, so start box select:
+                //TODO
             }
+        } else {//other click, probably right or middle
+            this.pageDrag = this.ctx.transformedPoint(this.lastX, this.lastY);
         }
     }
     mousemove(mouse) {
-        if (this.dragging == null) return;
-        this.dragging.X = this.dragOffsetX + mouse.X;
-        this.dragging.Y = this.dragOffsetY + mouse.Y;
-        this.draw();
+        this.lastX = mouse.x;
+        this.lastY = mouse.y;
+        mouse = this.ctx.transformedPoint(mouse.x, mouse.y);
+        if (this.dragging != null) {
+            this.dragging.x = this.dragOffsetX + mouse.x;
+            this.dragging.y = this.dragOffsetY + mouse.y;
+            this.draw();
+        } else if (this.rotating != null) {
+            let moveX = mouse.x - this.rotating.x;
+            let moveY = mouse.y - this.rotating.y;
+            let dotNormal = moveY / Math.sqrt(moveX ** 2 + moveY ** 2);
+            let dir = mouse.x < this.rotating.x ? 1 : -1;
+            this.rotating.angle = Math.acos(dotNormal) * dir;
+            this.draw();
+        } else if (this.pageDrag != null) {
+            let pt = this.ctx.transformedPoint(this.lastX, this.lastY);
+            this.ctx.translate(pt.x - this.pageDrag.x, pt.y - this.pageDrag.y);
+            this.draw();
+        }
     }
     mouseup() {
-        if (this.dragging == null) return;
+        if (this.dragging == null && this.rotating == null && this.pageDrag == null) return;
         this.dragging = null;
+        this.rotating = null;
+        this.pageDrag = null;
         this.draw();
     }
     mouseenter(buttons) {
-        if (this.dragging == null) return;
+        if (this.dragging == null && this.rotating == null && this.pageDrag == null) return;
         if (buttons != 1) this.mouseup();
     }
     mouseclick(mouse) {
-        if (Math.abs(this.oldX - mouse.X) + Math.abs(this.oldY - mouse.Y) > 0.001)
+        mouse = this.ctx.transformedPoint(mouse.x, mouse.y);
+        if (Math.abs(this.oldX - mouse.x) + Math.abs(this.oldY - mouse.y) > 0.001)
             return; //clicked, but then dragged too far
-        let shouldDraw = false;
-        if (this.selected != null) {
-            shouldDraw = true;
-            this.selected = null;
-        }
+        this.selected = null;
         //forwards so that if overlapped, non-selected will be selected
         for (let i = 0; i < this.dancers.length; i++) {
             let dancer = this.dancers[i];
-            if ((dancer.X - mouse.X) ** 2 + (dancer.Y - mouse.Y) ** 2 < (this.dancerSize) ** 2) {
+            if ((dancer.x - mouse.x) ** 2 + (dancer.y - mouse.y) ** 2 < (this.dancerSize) ** 2) {
                 this.selected = dancer;
+                this.rotating = null;
                 this.dragging = null;
-                let temp = this.dancers[this.dancers.length - 1] //swap to make selected on top
-                this.dancers[this.dancers.length - 1] = dancer;
-                this.dancers[i] = temp;
+                this.moveDancerToEnd(dancer, i);
                 this.draw();
                 return;
             }
         }
         this.draw();
     }
-
-
-
-    redraw() {
-        // Clear the entire canvas
-        var p1 = this.ctx.transformedPoint(0, 0);
-        var p2 = this.ctx.transformedPoint(this.width, this.height);
-        this.ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
-
-        this.ctx.save();
-        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-        this.ctx.clearRect(0, 0, this.width, this.height);
-        this.ctx.restore();
+    moveDancerToEnd(dancer, i) {
+        let temp = this.dancers[this.dancers.length - 1] //swap to make selected on top
+        this.dancers[this.dancers.length - 1] = dancer;
+        this.dancers[i] = temp;
     }
 
-    // Adds ctx.getTransform() - returns an SVGMatrix
-    // Adds ctx.transformedPoint(x,y) - returns an SVGPoint
-    trackTransforms() {
-        var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        var xform = svg.createSVGMatrix();
-        this.ctx.getTransform = function () {
-            return xform;
-        };
+    handleScroll(evt) {
+        let delta = evt.wheelDelta ? evt.wheelDelta / 40 : (evt.detail ? -evt.detail : 0);
+        if (delta) this.zoom(delta, this.ctx.transformedPoint(this.lastX, this.lastY));
+    }
+    /** Zoom the canvas in, centered on a point.
+     * @param {number} clicks how far to zoom in
+     * @param point the center point of the zoom */
+    zoom(clicks, point) {
+        this.ctx.translate(point.x, point.y);
+        let factor = Math.pow(this.scaleFactor, clicks);
+        this.ctx.scale(factor, factor);
+        this.ctx.translate(-point.x, -point.y);
+        this.draw();
+    }
 
-        var savedTransforms = [];
-        var save = this.ctx.save;
-        this.ctx.save = function () {
-            savedTransforms.push(xform.translate(0, 0));
-            return save.call(this.ctx);
-        };
-
-        var restore = this.ctx.restore;
-        this.ctx.restore = function () {
-            xform = savedTransforms.pop();
-            return restore.call(this.ctx);
-        };
-
-        var scale = this.ctx.scale;
-        this.ctx.scale = function (sx, sy) {
-            xform = xform.scaleNonUniform(sx, sy);
-            return scale.call(this.ctx, sx, sy);
-        };
-
-        var rotate = this.ctx.rotate;
-        this.ctx.rotate = function (radians) {
-            xform = xform.rotate(radians * 180 / Math.PI);
-            return rotate.call(this.ctx, radians);
-        };
-
-        var translate = this.ctx.translate;
-        this.ctx.translate = function (dx, dy) {
-            xform = xform.translate(dx, dy);
-            return translate.call(this.ctx, dx, dy);
-        };
-
-        var transform = this.ctx.transform;
-        this.ctx.transform = function (a, b, c, d, e, f) {
-            var m2 = svg.createSVGMatrix();
-            m2.a = a;
-            m2.b = b;
-            m2.c = c;
-            m2.d = d;
-            m2.e = e;
-            m2.f = f;
-            xform = xform.multiply(m2);
-            return transform.call(this.ctx, a, b, c, d, e, f);
-        };
-
-        var setTransform = this.ctx.setTransform;
-        this.ctx.setTransform = function (a, b, c, d, e, f) {
-            xform.a = a;
-            xform.b = b;
-            xform.c = c;
-            xform.d = d;
-            xform.e = e;
-            xform.f = f;
-            return setTransform.call(this.ctx, a, b, c, d, e, f);
-        };
-
-        var pt = svg.createSVGPoint();
-        this.ctx.transformedPoint = function (x, y) {
-            pt.x = x;
-            pt.y = y;
-            return pt.matrixTransform(xform.inverse());
-        };
+    /** Zooms the canvas in our out.
+     * @param {*} frames how many frames to zoom for
+     * @param {*} clicksPerFrame how far to zoom per frame */
+    zoomAnim(frames, clicksPerFrame) {
+        requestAnimationFrame(() => {
+            this.zoom(clicksPerFrame, this.ctx.transformedPoint(this.width / 2, this.height / 2));
+            clicksPerFrame *= .7;
+            if (frames > 0) this.zoomAnim(frames - 1, clicksPerFrame);
+        });
+    }
+    resetView() {
+        this.ctx.setTransform();
+        this.draw();
     }
 }

@@ -10,46 +10,73 @@ Util.events(document, {
         dom.confirmStage = Util.one("#confirmStage");
         dom.addDancer = Util.one("#addDancer");
         dom.removeDancer = Util.one("#removeDancer");
+        dom.zoomIn = Util.one("#zoomIn");
+        dom.zoomOut = Util.one("#zoomOut");
+        dom.resetView = Util.one("#resetView");
         dom.stageView = Util.one("#stageView");
-        stageView.ctx = dom.stageView.getContext('2d');
+
+        var trackedContext = new Proxy(TrackedContext, {
+            get(target, name, receiver) {
+                console.log(name);
+                if (name in target.__proto__) { // assume methods live on the prototype
+                    return function (...args) {
+                        var methodName = name;
+                        // we now have access to both methodName and arguments
+                    };
+                } else { // assume instance vars like on the target
+                    return Reflect.get(target, name, receiver);
+                }
+            }
+        });
+        trackedContext.constructor(dom.stageView.getContext('2d', { alpha: false }));
+        trackedContext.printTest();
+
+        stageView.ctx = trackedContext;
 
         dom.confirmStage.addEventListener("click", () => stageDrawing.doneDrawing());
         dom.addDancer.addEventListener("click", () => stageView.addDancer());
         dom.removeDancer.addEventListener("click", () => stageView.removeDancer());
+        dom.zoomIn.addEventListener("click", () => stageView.zoomAnim(20, 1.3));
+        dom.zoomOut.addEventListener("click", () => stageView.zoomAnim(20, -1.3));
+        dom.resetView.addEventListener("click", () => stageView.resetView());
 
-        stageView.respondCanvas();
+        stageView.respondCanvas(true);
         window.onresize = () => stageView.respondCanvas();
-
-        dom.stageView.addEventListener("mousedown", evt => {
-            evt.preventDefault();
-            stageView.mousedown(getCanvasCoords(evt));
-            return false;
-        });
-        dom.stageView.addEventListener("mousemove", function(evt){
-            evt.preventDefault();
-            stageView.mousemove(getCanvasCoords(evt));
-            return false;
-        });
-        dom.stageView.addEventListener("mouseup", evt => {
-            evt.preventDefault();
-            stageView.mouseup();
-            return false;
-        });
-        dom.stageView.addEventListener("mouseenter", evt => {
-            evt.preventDefault();
-            stageView.mouseenter(evt.buttons);
-            return false;
-        });
-        dom.stageView.addEventListener("click", evt => {
-            evt.preventDefault();
-            stageView.mouseclick(getCanvasCoords(evt));
-            return false;
-        });
+        Util.events(dom.stageView, {
+            "mousedown": evt => {
+                stageView.mousedown(getCanvasCoords(evt), evt.buttons);
+                return evt.preventDefault() && false;
+            },
+            "mousemove": function (evt) {
+                evt.preventDefault();
+                stageView.mousemove(getCanvasCoords(evt));
+                return evt.preventDefault() && false;
+            },
+            "mouseup": evt => {
+                evt.preventDefault();
+                stageView.mouseup();
+                return evt.preventDefault() && false;
+            },
+            "mouseenter": evt => {
+                evt.preventDefault();
+                stageView.mouseenter(evt.buttons);
+                return evt.preventDefault() && false;
+            },
+            "click": evt => {
+                evt.preventDefault();
+                stageView.mouseclick(getCanvasCoords(evt));
+                return evt.preventDefault() && false;
+            },
+            "mousewheel": evt => {
+                stageView.handleScroll(evt);
+                return evt.preventDefault() && false;
+            }
+        })
     }
 
-    
+
 });
-function getCanvasCoords(evt){
+function getCanvasCoords(evt) {
     let topLeft = Util.offset(dom.stageView);
-    return { X: evt.clientX - topLeft.left, Y: evt.clientY - topLeft.top };
+    return { x: evt.clientX - topLeft.left, y: evt.clientY - topLeft.top };
 }

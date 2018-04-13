@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css?family=Comfortaa|Julius+Sans+One');
 :root { /* Global variables */
+	--background-main: hsl(0, 0%, 100%);
 	--color-light-gray: hsl(220, 10%, 85%);
-	--color-less-light-gray: hsl(220, 10%, 68%);
 	--color-red: hsl(0, 80%, 48%);
 	--color-dark-red: hsl(0, 76%, 37%);
 	--color-light-red: hsl(0, 54%, 89%);
@@ -24,6 +24,7 @@ html, body, main {
     height: 100%;
 }
 main {
+    background-color: var(--background-main);
     display: grid;
     justify-content: stretch;
     align-items: stretch;   
@@ -46,7 +47,7 @@ main {
     display: none;
     grid-area: 1 / 1 / 9 / 10;
     background: var(--color-light-gray);
-    z-index: 1;
+    z-index: 100;
 }
 
 
@@ -56,7 +57,7 @@ div { /* TODO: Remove this */
     text-align: center;
 }
 
-.name1 {
+.n1 {
     grid-area: header;
     color: var(--color-blue);
     font-family: 'Comfortaa', cursive;
@@ -66,19 +67,12 @@ div { /* TODO: Remove this */
     text-align: end;
     border: none;
 }
-.name2 {
+.n2 {
     font-family: 'Julius Sans One', sans-serif;
     font-weight: bold;
 }
-.name3 {
+.n3 {
     font-family: sans-serif;
-}
-
-#stageView {
-    outline: solid 2.5px black;
-    grid-area: canvas;
-    height: 100%;
-    width: 100%;
 }
 
 #groups {
@@ -103,3 +97,41 @@ div { /* TODO: Remove this */
 #music {
     grid-area: music;
 }
+
+
+#stageView {
+    background-color: white;
+    border: solid 2px black;
+    margin: -2px -1px -1px -1px;
+    border-radius: 10px;
+    grid-area: canvas;
+    height: 100%;
+    width: 100%;
+}
+#stageViewControls {
+    border: none;
+    grid-area: canvas;
+    justify-self: end;
+    align-self: start;
+    display: flex;
+    justify-content: space-between;
+    margin: 7px -4px 0 0;
+    z-index: 1;
+}
+#zoomIn {
+    width: 40px;
+    height: 40px;
+}
+#zoomIn:focus {outline:0;}
+#zoomOut {
+    width: 40px;
+    height: 40px;
+    margin: 0 10px 0 10px;
+}
+#zoomOut:focus {outline:0;}
+#resetView {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+}
+#resetView:focus {outline:0;}

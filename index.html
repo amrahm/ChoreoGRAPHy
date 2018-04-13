@@ -19,10 +19,11 @@
     <!-- Load any supplemental Javascript libraries here -->
     <!-- ... -->
 
-    <!-- Constructible EventTarget polyfill — Only Chrome 64+ supports constructible EventTarget objects natively -->
+    <!-- Constructible EventTarget polyfill for added support -->
     <script src="https://unpkg.com/event-target@latest/min.js"></script>
 
     <script src="util.js"></script>
+    <script src="trackedContext.js"></script>
     <script src="stageDrawing.js"></script>
     <script src="stageView.js"></script>
     <script src="main.js"></script>
@@ -35,7 +36,7 @@
         <div id="stageDrawing">
             <button id="confirmStage">confirm</button>
         </div>
-        <div class="name1">Choreo<span class="name2">GRAPH</span>y&thinsp;<span class="name3">™</span></div>
+        <div class="n1">Choreo<span class="n2">GRAPH</span>y&thinsp;<span class="n3">™</span></div>
         <div id="groups">Groups</div>
         <div id="stageTitle">Stage Title</div>
         <button id="addDancer">Add Dancer</button>
@@ -43,7 +44,12 @@
         <div id="formationComments">Formation Comments</div>
         <div id="timeline">timeline</div>
         <div id="music">music</div>
-        <canvas id="stageView">Stage should be here. Please update your browser.</canvas>
+        <canvas id="stageView" oncontextmenu="return false;"></canvas>
+        <div id="stageViewControls">
+            <input id="zoomIn" type="image" src="graphics/PlusIcon.png" alt="Zoom In">
+            <input id="zoomOut" type="image" src="graphics/MinusIcon.png" alt="Zoom Out">
+            <input id="resetView" type="image" src="graphics/ResetIcon.png" alt="Reset View">
+        </div>
     </main>
 
 </body>
