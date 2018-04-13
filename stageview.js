@@ -30,7 +30,6 @@ class StageView extends EventTarget {
 
     /** Respond to window resize so that drawings don't get distorted. */
     respondCanvas(firstTime = false) {
-        this.ctx.printTest();
         let oldC = this.ctx.transformedPoint(this.width / 2, this.height / 2);
         let oldT = this.ctx.getTransform();
         this.ctx.setTransform();
@@ -50,7 +49,6 @@ class StageView extends EventTarget {
     draw() {
         let p1 = this.ctx.transformedPoint(0, 0);
         let p2 = this.ctx.transformedPoint(this.width, this.height);
-        console.log("TRYNA CLEAR");
         this.ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
 
         this.ctx.save();
@@ -256,5 +254,67 @@ class StageView extends EventTarget {
     resetView() {
         this.ctx.setTransform();
         this.draw();
+    }
+
+    trackTransforms() {
+        let ct = this.ctx;
+        let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        let xform = svg.createSVGMatrix();
+        ct.getTransform = function () {
+            let c = svg.createSVGMatrix();
+            c.a = xform.a, c.b = xform.b, c.c = xform.c, c.d = xform.d, c.e = xform.e, c.f = xform.f;
+            return c;
+        };
+
+        let savedTransforms = [];
+        let save = ct.save;
+        ct.save = function () {
+            savedTransforms.push(xform.translate(0, 0));
+            return save.call(ct);
+        };
+
+        let restore = ct.restore;
+        ct.restore = function () {
+            xform = savedTransforms.pop();
+            return restore.call(ct);
+        };
+
+        let scale = ct.scale;
+        ct.scale = function (sx, sy) {
+            xform = xform.scaleNonUniform(sx, sy);
+            return scale.call(ct, sx, sy);
+        };
+
+        let rotate = ct.rotate;
+        ct.rotate = function (radians) {
+            xform = xform.rotate(radians * 180 / Math.PI);
+            return rotate.call(ct, radians);
+        };
+
+        let translate = ct.translate;
+        ct.translate = function (dx, dy) {
+            xform = xform.translate(dx, dy);
+            return translate.call(ct, dx, dy);
+        };
+
+        let transform = ct.transform;
+        ct.transform = function (a, b, c, d, e, f) {
+            let m2 = svg.createSVGMatrix();
+            m2.a = a, m2.b = b, m2.c = c, m2.d = d, m2.e = e, m2.f = f;
+            xform = xform.multiply(m2);
+            return transform.call(ct, a, b, c, d, e, f);
+        };
+
+        let setTransform = ct.setTransform;
+        ct.setTransform = function (a = 1, b = 0, c = 0, d = 1, e = 0, f = 0) {
+            xform.a = a, xform.b = b, xform.c = c, xform.d = d, xform.e = e, xform.f = f;
+            return setTransform.call(ct, a, b, c, d, e, f);
+        };
+
+        let pt = svg.createSVGPoint();
+        ct.transformedPoint = function (x, y) {
+            pt.x = x, pt.y = y;
+            return pt.matrixTransform(xform.inverse());
+        };
     }
 }
