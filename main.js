@@ -15,23 +15,9 @@ Util.events(document, {
         dom.resetView = Util.one("#resetView");
         dom.stageView = Util.one("#stageView");
 
-        var trackedContext = new Proxy(TrackedContext, {
-            get(target, name, receiver) {
-                console.log(name);
-                if (name in target.__proto__) { // assume methods live on the prototype
-                    return function (...args) {
-                        var methodName = name;
-                        // we now have access to both methodName and arguments
-                    };
-                } else { // assume instance vars like on the target
-                    return Reflect.get(target, name, receiver);
-                }
-            }
-        });
-        trackedContext.constructor(dom.stageView.getContext('2d', { alpha: false }));
-        trackedContext.printTest();
+        
 
-        stageView.ctx = trackedContext;
+        stageView.ctx = getTrackedContext(dom.stageView.getContext('2d', { alpha: false }));
 
         dom.confirmStage.addEventListener("click", () => stageDrawing.doneDrawing());
         dom.addDancer.addEventListener("click", () => stageView.addDancer());

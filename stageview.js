@@ -30,7 +30,6 @@ class StageView extends EventTarget {
 
     /** Respond to window resize so that drawings don't get distorted. */
     respondCanvas(firstTime = false) {
-        this.ctx.printTest();
         let oldC = this.ctx.transformedPoint(this.width / 2, this.height / 2);
         let oldT = this.ctx.getTransform();
         this.ctx.setTransform();
@@ -50,7 +49,6 @@ class StageView extends EventTarget {
     draw() {
         let p1 = this.ctx.transformedPoint(0, 0);
         let p2 = this.ctx.transformedPoint(this.width, this.height);
-        console.log("TRYNA CLEAR");
         this.ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
 
         this.ctx.save();
