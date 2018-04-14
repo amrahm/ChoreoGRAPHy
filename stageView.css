@@ -1,0 +1,33 @@
+#stageView {
+    background-color: white;
+    border: solid 2px black;
+    margin: -2px -1px -1px -1px;
+    border-radius: 10px;
+}
+#stageViewControls {
+    border: none;
+    grid-area: canvas;
+    justify-self: end;
+    align-self: start;
+    display: flex;
+    justify-content: space-between;
+    margin: 7px -4px 0 0;
+    z-index: 1;
+}
+#zoomIn {
+    width: 40px;
+    height: 40px;
+}
+#zoomIn:focus {outline:0;}
+#zoomOut {
+    width: 40px;
+    height: 40px;
+    margin: 0 10px 0 10px;
+}
+#zoomOut:focus {outline:0;}
+#resetView {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+}
+#resetView:focus {outline:0;}

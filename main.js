@@ -7,6 +7,7 @@ Util.events(document, {
     //runs at the end of start-up when the DOM is ready
     "DOMContentLoaded": () => {
         dom.stageDrawing = Util.one("#stageDrawing");
+        dom.timeline = Util.one("#timeline");
         dom.confirmStage = Util.one("#confirmStage");
         dom.addDancer = Util.one("#addDancer");
         dom.removeDancer = Util.one("#removeDancer");
@@ -15,7 +16,7 @@ Util.events(document, {
         dom.resetView = Util.one("#resetView");
         dom.stageView = Util.one("#stageView");
 
-        
+
 
         stageView.ctx = getTrackedContext(dom.stageView.getContext('2d', { alpha: false }));
 
@@ -58,11 +59,22 @@ Util.events(document, {
                 return evt.preventDefault() && false;
             }
         })
+
+        addFormation();
     }
-
-
 });
 function getCanvasCoords(evt) {
     let topLeft = Util.offset(dom.stageView);
     return { x: evt.clientX - topLeft.left, y: evt.clientY - topLeft.top };
+}
+
+function addFormation() {
+    let newSlide = document.createElement("div");
+    newSlide.classList.add("formationSlide");
+    dom.timeline.appendChild(newSlide);
+
+    let img = document.createElement("canvas");
+    newSlide.appendChild(img);
+    let ctx = img.getContext('2d', { alpha: false });
+    ctx.drawImage(stageView.ctx.getCtx().canvas, 0, 0);
 }

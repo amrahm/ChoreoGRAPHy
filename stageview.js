@@ -1,6 +1,7 @@
 //TODO Zoom min and max
 //TODO Undo/Redo
 //TODO Front view
+//TODO Showing and editing names
 /** Implements the top and front stage views, with adding and removing dancers */
 class StageView extends EventTarget {
     constructor() {
@@ -17,17 +18,18 @@ class StageView extends EventTarget {
         this.selectP2 = null; //End point of box selection
         this.selectionBox = null; //The actual box, for hitTesting
         this.selected = []; //selected dancers
-        this.dancers = [] //element format: {name: "name", x: 5.6, y: 20, angle: 37}
+        this.dancers = []; //element format: {name: "name", x: 5.6, y: 20, angle: 37}
+        this.formations = [this.dancers]; //a list of dancers
         //---TESTING---
-        // this.dancers.push({ name: "name", x: 0, y: 0 });
-        // this.dancers.push({ name: "name", x: 500, y: 0 });
-        // this.dancers.push({ name: "name", x: 1000, y: 0 });
-        // this.dancers.push({ name: "name", x: 0, y: 500 });
-        // this.dancers.push({ name: "name", x: 500, y: 500 });
-        // this.dancers.push({ name: "name", x: 1000, y: 500 });
-        // this.dancers.push({ name: "name", x: 0, y: 1000 });
-        // this.dancers.push({ name: "name", x: 500, y: 1000 });
-        // this.dancers.push({ name: "name", x: 1000, y: 1000 });
+        this.dancers.push({ name: "name", x: 0, y: 0 });
+        this.dancers.push({ name: "name", x: 500, y: 0 });
+        this.dancers.push({ name: "name", x: 1000, y: 0 });
+        this.dancers.push({ name: "name", x: 0, y: 500 });
+        this.dancers.push({ name: "name", x: 500, y: 500 });
+        this.dancers.push({ name: "name", x: 1000, y: 500 });
+        this.dancers.push({ name: "name", x: 0, y: 1000 });
+        this.dancers.push({ name: "name", x: 500, y: 1000 });
+        this.dancers.push({ name: "name", x: 1000, y: 1000 });
     }
 
     /** Respond to window resize so that drawings don't get distorted. */
@@ -113,7 +115,7 @@ class StageView extends EventTarget {
         });
 
         //:::BOX SELECT
-        if (this.selectP1 != null) {
+        if (this.selectP1 != null && this.selectP2 != null) {
             this.selectionBox = new Path2D();
             this.selectionBox.rect(this.selectP1.x, this.selectP1.y, this.selectP2.x - this.selectP1.x, this.selectP2.y - this.selectP1.y);
             this.ctx.fillStyle = 'rgba(130, 166, 255, .5)';
@@ -140,6 +142,7 @@ class StageView extends EventTarget {
         this.draw();
     }
     removeDancer() {
+        //TODO should have a dialogue box asking if to delete from this formation, all before, all after, or all (options based on position and number of formations)
         if (this.selected.length > 0) {
             this.dancers = this.dancers.filter(dancer => this.selected.indexOf(dancer) == -1);
             this.draw();
@@ -259,7 +262,7 @@ class StageView extends EventTarget {
 
     handleScroll(evt) {
         let delta = evt.wheelDelta ? evt.wheelDelta / 40 : (evt.detail ? -evt.detail : 0);
-        if (delta) this.zoom(delta, this.ctx.transformedPoint(this.lastM.x, this.lastM.y));
+        if (delta) this.zoom(delta, this.lastM);
     }
     /** Zoom the canvas in, centered on a point.
      * @param {number} clicks how far to zoom in

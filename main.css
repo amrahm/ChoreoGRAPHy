@@ -87,51 +87,36 @@ div { /* TODO: Remove this */
 #removeDancer {
     grid-area: removeDancer;
 }
-#formationComments {
-    grid-area: formationComments;
-    margin-top: 20px;
-}
-#timeline {
-    grid-area: timeline;
-}
-#music {
-    grid-area: music;
-}
-
-
 #stageView {
-    background-color: white;
-    border: solid 2px black;
-    margin: -2px -1px -1px -1px;
-    border-radius: 10px;
     grid-area: canvas;
     height: 100%;
     width: 100%;
 }
 #stageViewControls {
-    border: none;
     grid-area: canvas;
     justify-self: end;
     align-self: start;
+}
+#formationComments {
+    grid-area: formationComments;
+    margin-top: 20px;
+}
+#music {
+    grid-area: music;
+}
+
+#timeline {
+    grid-area: timeline;
+    border: none;
+}
+.formationSlide {
     display: flex;
-    justify-content: space-between;
-    margin: 7px -4px 0 0;
-    z-index: 1;
+    flex-direction: column;
+    overflow: auto;
+    height: 100%;
+    width: 200px;
 }
-#zoomIn {
-    width: 40px;
-    height: 40px;
+.formationSlide > canvas {
+    height: 100%;
+    width: 100%;
 }
-#zoomIn:focus {outline:0;}
-#zoomOut {
-    width: 40px;
-    height: 40px;
-    margin: 0 10px 0 10px;
-}
-#zoomOut:focus {outline:0;}
-#resetView {
-    width: 40px;
-    height: 40px;
-    margin-right: 10px;
-}
-#resetView:focus {outline:0;}

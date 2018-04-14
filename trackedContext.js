@@ -17,6 +17,10 @@ let TrackedContext = {
         return c;
     },
 
+    getCtx(){
+        return this.ctx;
+    },
+
     save() {
         this.savedTransforms.push(this.xform.translate(0, 0));
         this.ctx.save();
