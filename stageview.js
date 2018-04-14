@@ -1,6 +1,6 @@
-//TODO Marqee selection. Shouldn't be too hard, but will have to make dragging and selected be arrays
 //TODO Zoom min and max
 //TODO Undo/Redo
+//TODO Front view
 /** Implements the top and front stage views, with adding and removing dancers */
 class StageView extends EventTarget {
     constructor() {
@@ -13,7 +13,10 @@ class StageView extends EventTarget {
         this.pageDrag = null; //dragging page
         this.dragging = null; //dragged dancer
         this.rotating = null; //rotating dancer
-        this.selected = null; //selected dancer
+        this.selectP1 = null; //Start point of box selection
+        this.selectP2 = null; //End point of box selection
+        this.selectionBox = null; //The actual box, for hitTesting
+        this.selected = []; //selected dancers
         this.dancers = [] //element format: {name: "name", x: 5.6, y: 20, angle: 37}
         //---TESTING---
         // this.dancers.push({ name: "name", x: 0, y: 0 });
@@ -56,10 +59,13 @@ class StageView extends EventTarget {
         this.ctx.restore();
 
         this.dancers.forEach(dancer => {
-            if (dancer == this.dragging) {
+            if (this.dragging == dancer) {
                 this.ctx.shadowBlur = 20;
-                this.ctx.shadowColor = "black";
-            } else if (dancer == this.selected) {
+                if (this.selected.indexOf(dancer) == -1)
+                    this.ctx.shadowColor = "black";
+                else
+                    this.ctx.shadowColor = 'rgb(0, 56, 147)';
+            } else if (this.selected.indexOf(dancer) != -1) {
                 this.ctx.shadowBlur = 20;
                 this.ctx.shadowColor = "blue";
             } else {
@@ -105,6 +111,16 @@ class StageView extends EventTarget {
 
             this.ctx.restore();
         });
+
+        //:::BOX SELECT
+        if (this.selectP1 != null) {
+            this.selectionBox = new Path2D();
+            this.selectionBox.rect(this.selectP1.x, this.selectP1.y, this.selectP2.x - this.selectP1.x, this.selectP2.y - this.selectP1.y);
+            this.ctx.fillStyle = 'rgba(130, 166, 255, .5)';
+            this.ctx.fill(this.selectionBox);
+            this.ctx.strokeStyle = 'rgb(130, 166, 255)';
+            this.ctx.stroke(this.selectionBox);
+        }
     }
 
     addDancer() {
@@ -124,92 +140,108 @@ class StageView extends EventTarget {
         this.draw();
     }
     removeDancer() {
-        if (this.selected != null) {
-            this.dancers = this.dancers.filter(dancer => dancer != this.selected);
+        if (this.selected.length > 0) {
+            this.dancers = this.dancers.filter(dancer => this.selected.indexOf(dancer) == -1);
             this.draw();
         }
     }
 
     mousedown(mouse, buttons) {
-        this.lastX = mouse.x;
-        this.lastY = mouse.y;
-        mouse = this.ctx.transformedPoint(mouse.x, mouse.y);
+        let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
+        this.lastM = mouseT;
         if (buttons == 1) { //left click
             for (let i = this.dancers.length - 1; i >= 0; i--) { //backwards so selected is chosen first
                 let dancer = this.dancers[i];
-                this.oldX = mouse.x;
-                this.oldY = mouse.y;
+                this.oldM = mouseT;
 
                 this.ctx.save();
                 this.ctx.translate(dancer.x, dancer.y);
                 this.ctx.rotate(dancer.angle);
-                if (this.ctx.isPointInPath(dancer.dirArrow, this.lastX, this.lastY)) {
+                if (this.ctx.isPointInPath(dancer.dirArrow, mouse.x, mouse.y)) {
                     this.moveDancerToEnd(dancer, i);
-                    if (this.selected != dancer) this.selected = null;
+                    if (this.selected.indexOf(dancer) == -1) this.selected = [];
                     this.rotating = dancer;
                     this.ctx.restore();
                     return;
                 }
                 this.ctx.restore();
 
-                if ((dancer.x - mouse.x) ** 2 + (dancer.y - mouse.y) ** 2 < (this.dancerSize) ** 2) {
+                if ((dancer.x - mouseT.x) ** 2 + (dancer.y - mouseT.y) ** 2 < (this.dancerSize) ** 2) {
                     this.moveDancerToEnd(dancer, i);
-                    if (this.selected != dancer) this.selected = null;
+                    if (this.selected.indexOf(dancer) == -1) this.selected = [];
                     this.dragging = dancer;
-                    this.dragOffsetX = dancer.x - mouse.x;
-                    this.dragOffsetY = dancer.y - mouse.y;
                     this.draw();
                     return;
                 }
-                //No dancer was clicked on, so start box select:
-                //TODO
             }
+            //No dancer was clicked on, so start box select:
+            this.selected = [];
+            this.selectP1 = mouseT;
         } else {//other click, probably right or middle
-            this.pageDrag = this.ctx.transformedPoint(this.lastX, this.lastY);
+            this.pageDrag = this.lastM;
         }
     }
     mousemove(mouse) {
-        this.lastX = mouse.x;
-        this.lastY = mouse.y;
-        mouse = this.ctx.transformedPoint(mouse.x, mouse.y);
+        let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
         if (this.dragging != null) {
-            this.dragging.x = this.dragOffsetX + mouse.x;
-            this.dragging.y = this.dragOffsetY + mouse.y;
+            this.dragging.x += mouseT.x - this.lastM.x;
+            this.dragging.y += mouseT.y - this.lastM.y;
+            this.selected.forEach(dancer => {
+                if (dancer != this.dragging) {
+                    dancer.x += mouseT.x - this.lastM.x;
+                    dancer.y += mouseT.y - this.lastM.y;
+                }
+            });
             this.draw();
         } else if (this.rotating != null) {
-            let moveX = mouse.x - this.rotating.x;
-            let moveY = mouse.y - this.rotating.y;
+            let oldA = this.rotating.angle;
+            let moveX = mouseT.x - this.rotating.x;
+            let moveY = mouseT.y - this.rotating.y;
             let dotNormal = moveY / Math.sqrt(moveX ** 2 + moveY ** 2);
-            let dir = mouse.x < this.rotating.x ? 1 : -1;
+            let dir = mouseT.x < this.rotating.x ? 1 : -1;
             this.rotating.angle = Math.acos(dotNormal) * dir;
+            this.selected.forEach(dancer => {
+                if (dancer != this.rotating) dancer.angle += this.rotating.angle - oldA;
+            });
+            this.draw();
+        } else if (this.selectP1 != null) {
+            this.selectP2 = mouseT;
             this.draw();
         } else if (this.pageDrag != null) {
-            let pt = this.ctx.transformedPoint(this.lastX, this.lastY);
-            this.ctx.translate(pt.x - this.pageDrag.x, pt.y - this.pageDrag.y);
+            this.ctx.translate(mouseT.x - this.pageDrag.x, mouseT.y - this.pageDrag.y);
             this.draw();
         }
+        this.lastM = mouseT;
     }
     mouseup() {
-        if (this.dragging == null && this.rotating == null && this.pageDrag == null) return;
+        if (this.dragging == null && this.rotating == null && this.pageDrag == null && this.selectP1 == null) return;
         this.dragging = null;
         this.rotating = null;
         this.pageDrag = null;
+        if (this.selectP1 != null) {
+            this.selected = this.dancers.filter(dancer => {
+                let danceT = this.ctx.untransformedPoint(dancer.x, dancer.y);
+                return this.ctx.isPointInPath(this.selectionBox, danceT.x, danceT.y);
+            });
+            this.selectP1 = null;
+            this.selectP2 = null;
+        }
         this.draw();
     }
     mouseenter(buttons) {
-        if (this.dragging == null && this.rotating == null && this.pageDrag == null) return;
+        if (this.dragging == null && this.rotating == null && this.pageDrag == null && this.selectP1 == null) return;
         if (buttons != 1) this.mouseup();
     }
     mouseclick(mouse) {
         mouse = this.ctx.transformedPoint(mouse.x, mouse.y);
-        if (Math.abs(this.oldX - mouse.x) + Math.abs(this.oldY - mouse.y) > 0.001)
+        if (Math.abs(this.oldM.x - mouse.x) + Math.abs(this.oldM.y - mouse.y) > 0.001)
             return; //clicked, but then dragged too far
-        this.selected = null;
+        this.selected = [];
         //forwards so that if overlapped, non-selected will be selected
         for (let i = 0; i < this.dancers.length; i++) {
             let dancer = this.dancers[i];
             if ((dancer.x - mouse.x) ** 2 + (dancer.y - mouse.y) ** 2 < (this.dancerSize) ** 2) {
-                this.selected = dancer;
+                this.selected.push(dancer);
                 this.rotating = null;
                 this.dragging = null;
                 this.moveDancerToEnd(dancer, i);
@@ -227,7 +259,7 @@ class StageView extends EventTarget {
 
     handleScroll(evt) {
         let delta = evt.wheelDelta ? evt.wheelDelta / 40 : (evt.detail ? -evt.detail : 0);
-        if (delta) this.zoom(delta, this.ctx.transformedPoint(this.lastX, this.lastY));
+        if (delta) this.zoom(delta, this.ctx.transformedPoint(this.lastM.x, this.lastM.y));
     }
     /** Zoom the canvas in, centered on a point.
      * @param {number} clicks how far to zoom in

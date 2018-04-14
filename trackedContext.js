@@ -55,15 +55,24 @@ let TrackedContext = {
         this.ctx.setTransform(a, b, c, d, e, f);
     },
 
-    /** Returns the point after applying all the transformations the canvas has undergone */
+    /** Returns the point converted to canvas space */
     transformedPoint(x, y) {
         let pt = this.svg.createSVGPoint();
         pt.x = x, pt.y = y;
         return pt.matrixTransform(this.xform.inverse());
+    },
+
+    /** Returns the point converted from canvas space */
+    untransformedPoint(x, y) {
+        let pt = this.svg.createSVGPoint();
+        pt.x = x, pt.y = y;
+        return pt.matrixTransform(this.xform);
     }
 }
 
-/** This crazy shit lets us extend the canvas to include the above operations */
+/** This crazy shit lets us extend the canvas to include the above operations.
+ * It catches any unkown function calls or property gets and passes them to the real context.
+ */
 let getTrackedContext = (ctx) => {
     let trackedContext = new Proxy(TrackedContext, {
         get(target, prop, receiver) {
