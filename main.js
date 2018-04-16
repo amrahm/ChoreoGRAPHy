@@ -44,7 +44,10 @@ Util.events(document, {
                 stageView.mousewheel(evt);
                 return evt.preventDefault() && false;
             }
-        })
+        });
+        Util.events(dom.stageViewControls, {
+            "mousedown": evt => (evt.preventDefault() && false)
+        });
 
         addFormation();
     },
@@ -70,6 +73,10 @@ function addFormation() {
     let newSlide = document.createElement("div");
     newSlide.classList.add("formationSlide");
     dom.timeline.appendChild(newSlide);
+    
+    let title = document.createElement("p");
+    title.innerText = `Formation ${stageView.formations.length}`;
+    newSlide.appendChild(title);
 
     let img = document.createElement("canvas");
     newSlide.appendChild(img);

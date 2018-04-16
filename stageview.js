@@ -2,7 +2,7 @@
 //TODO: Undo/Redo
 //TODO: Front view
 //TODO: Showing and editing names
-//TODO: CTRL/Shift for selecting multiple
+//TODO: CTRL/Shift for selecting multiple, del for removing dancer
 
 
 /** Implements the top and front stage views, with adding and removing dancers */
@@ -92,8 +92,8 @@ class StageView extends EventTarget {
             this.redrawThumb = true;
         else {
             ctx.setTransform();
-            this.resetView(ctx, parseInt(Util.getStyleValue(ctx.getCtx().canvas, "width")),
-                parseInt(Util.getStyleValue(ctx.getCtx().canvas, "height")));
+            this.resetView(ctx, parseInt(Util.getStyleValue(ctx.canvas, "width")),
+                parseInt(Util.getStyleValue(ctx.canvas, "height")));
         }
         let p1 = ctx.transformedPoint(0, 0);
         let p2 = ctx.transformedPoint(this.width, this.height);
@@ -229,6 +229,7 @@ class StageView extends EventTarget {
             this.dancers = this.dancers.filter(dancer => this.selected.indexOf(dancer) === -1);
             this.draw();
         }
+        dom.removeDancer.disabled = true;
     }
 
     mousedown(mouse, buttons) {
@@ -238,7 +239,7 @@ class StageView extends EventTarget {
         if (buttons === 1) { //left click
             for (let i = this.dancers.length - 1; i >= 0; i--) { //backwards so selected is chosen first
                 let dancer = this.dancers[i];
-                if (dancer.rotateIcon != null) {
+                if (this.selected.indexOf(dancer) != -1) {
                     this.ctx.save();
                     this.ctx.translate(dancer.x, dancer.y);
                     this.ctx.rotate(dancer.angle);
@@ -314,6 +315,11 @@ class StageView extends EventTarget {
                 let danceT = this.ctx.untransformedPoint(dancer.x, dancer.y);
                 return this.ctx.isPointInPath(this.selectionBox, danceT.x, danceT.y);
             });
+            let n = 1;
+            this.selected.forEach(dancer => {
+                this.moveDancerToEnd(dancer, this.dancers.indexOf(dancer), n);
+                n++;
+            });
         }
         this.selP1 = null;
         this.selP2 = null;
@@ -345,9 +351,13 @@ class StageView extends EventTarget {
         this.draw();
         dom.removeDancer.disabled = this.selected.length === 0;
     }
-    moveDancerToEnd(dancer, i) {
-        let temp = this.dancers[this.dancers.length - 1] //swap to make selected on top
-        this.dancers[this.dancers.length - 1] = dancer;
+    /** Moves the specified dancer to the end of the dancers array.
+     * @param {*} dancer the dancer to move
+     * @param {*} i the index of that dancer
+     * @param {*} n should be incremented to 1 + the number of swapped dancers */
+    moveDancerToEnd(dancer, i, n = 1) {
+        let temp = this.dancers[this.dancers.length - n] //swap to make selected on top
+        this.dancers[this.dancers.length - n] = dancer;
         this.dancers[i] = temp;
     }
     /** Returns whether or not anything is currently being dragged */

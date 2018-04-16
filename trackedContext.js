@@ -78,6 +78,7 @@ let TrackedContext = {
  * It catches any unkown function calls or property gets and passes them to the real context. */
 let getTrackedContext = (ctx) => {
     let copy = Object.create(TrackedContext);
+    copy.canvas = ctx.canvas;
     let trackedContext = new Proxy(copy, {
         get(target, prop, receiver) {
             if (target[prop] === undefined) {
