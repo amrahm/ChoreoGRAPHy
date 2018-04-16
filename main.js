@@ -15,6 +15,8 @@ Util.events(document, {
         dom.zoomOut = Util.one("#zoomOut");
         dom.resetView = Util.one("#resetView");
         dom.stageView = Util.one("#stageView");
+        dom.stageViewControls = Util.one("#stageViewControls");
+        dom.stageViewControls.style.display = "inline";
 
 
 
@@ -34,33 +36,29 @@ Util.events(document, {
                 stageView.mousedown(getCanvasCoords(evt), evt.buttons);
                 return evt.preventDefault() && false;
             },
-            "mousemove": function (evt) {
-                evt.preventDefault();
-                stageView.mousemove(getCanvasCoords(evt));
-                return evt.preventDefault() && false;
-            },
-            "mouseup": evt => {
-                evt.preventDefault();
-                stageView.mouseup();
-                return evt.preventDefault() && false;
-            },
-            "mouseenter": evt => {
-                evt.preventDefault();
-                stageView.mouseenter(evt.buttons);
-                return evt.preventDefault() && false;
-            },
             "click": evt => {
-                evt.preventDefault();
                 stageView.mouseclick(getCanvasCoords(evt));
                 return evt.preventDefault() && false;
             },
             "mousewheel": evt => {
-                stageView.handleScroll(evt);
+                stageView.mousewheel(evt);
                 return evt.preventDefault() && false;
             }
         })
 
         addFormation();
+    },
+    "mousemove": function (evt) {
+        stageView.mousemove(getCanvasCoords(evt));
+        if(stageView.isDragging()) return evt.preventDefault() && false;
+    },
+    "mouseup": evt => {
+        stageView.mouseup();
+        if(stageView.isDragging()) return evt.preventDefault() && false;
+    },
+    "mouseenter": evt => {
+        stageView.mouseenter(evt.buttons);
+        if(stageView.isDragging()) return evt.preventDefault() && false;
     }
 });
 function getCanvasCoords(evt) {
@@ -75,6 +73,10 @@ function addFormation() {
 
     let img = document.createElement("canvas");
     newSlide.appendChild(img);
-    let ctx = img.getContext('2d', { alpha: false });
-    ctx.drawImage(stageView.ctx.getCtx().canvas, 0, 0);
+    img.setAttribute("width", parseInt(Util.getStyleValue(img, "width"))); //resize good
+    img.setAttribute("height", parseInt(Util.getStyleValue(img, "height")));
+
+    let ctx = getTrackedContext(img.getContext('2d', { alpha: false }));
+    stageView.selectedFormationCtx = ctx;
+    stageView.draw(ctx);
 }

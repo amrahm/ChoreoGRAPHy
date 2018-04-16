@@ -17,7 +17,7 @@ let TrackedContext = {
         return c;
     },
 
-    getCtx(){
+    getCtx() {
         return this.ctx;
     },
 
@@ -75,15 +75,13 @@ let TrackedContext = {
 }
 
 /** This crazy shit lets us extend the canvas to include the above operations.
- * It catches any unkown function calls or property gets and passes them to the real context.
- */
+ * It catches any unkown function calls or property gets and passes them to the real context. */
 let getTrackedContext = (ctx) => {
-    let trackedContext = new Proxy(TrackedContext, {
+    let copy = Object.create(TrackedContext);
+    let trackedContext = new Proxy(copy, {
         get(target, prop, receiver) {
             if (target[prop] === undefined) {
-                return (...args) => {
-                    return target.ctx[prop].apply(target.ctx, args);
-                };
+                return (...args) => target.ctx[prop].apply(target.ctx, args);
             } else {
                 return target[prop];
             }
