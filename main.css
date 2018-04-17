@@ -1,22 +1,7 @@
 @import url('https://fonts.googleapis.com/css?family=Comfortaa|Julius+Sans+One');
 :root { /* Global variables */
 	--background-main: hsl(0, 0%, 100%);
-	--color-light-gray: hsl(220, 10%, 85%);
-	--color-red: hsl(0, 80%, 48%);
-	--color-dark-red: hsl(0, 76%, 37%);
-	--color-light-red: hsl(0, 54%, 89%);
-	--color-yellow: gold;
-	--color-green: hsl(85, 90%, 37%);
-	--color-light-green: hsl(85, 50%, 57%);
-	--color-dark-green: hsl(85, 88%, 27%);
-	--color-orange: hsl(30, 100%, 50%);
-	--color-dark-orange: hsl(30, 100%, 37%);
-	--color-light-blue: hsl(210, 68%, 60%);
 	--color-blue: hsl(210, 80%, 45%);
-	--color-dark-blue: hsl(210, 76%, 36%);
-	--color-light-purple: rgb(193, 68, 193);
-	--color-purple: purple;
-	--color-dark-purple: rgb(92, 0, 92);
 }
 
 html, body, main {
@@ -36,7 +21,7 @@ main {
         [row4-start] "groups . canvas canvas canvas . formationComments formationComments ." auto [row4-end]
         [row5-start] "groups . canvas canvas canvas . formationComments formationComments ." auto [row5-end]
         [row6-start] "stageLegend . canvas canvas canvas . formationComments formationComments ." 100px [row6-end]
-        [row7-start] "timeline timeline timeline timeline timeline timeline timeline timeline timeline" 160px [row7-end]
+        [row7-start] "timeline timeline timeline timeline timeline timeline timeline timeline timeline" calc(var(--slide-height) + 2em + 10px) [row7-end]
         [row8-start] "music music music music music music music music music" 50px [row8-end]
         / 5fr 20px 8fr 8fr 8fr 20px 4fr 1fr 20px;
 }
@@ -52,6 +37,7 @@ main {
 
 .n1 {
     grid-area: header;
+    margin-top: 10px;
     color: var(--color-blue);
     font-family: 'Comfortaa', cursive;
     font-style: italic;
@@ -79,61 +65,18 @@ main {
     border-radius: 10px;
     text-align: center;
 }
-#dancerControls {
-    grid-area: dancerControls;
-    display: flex;
-    flex-direction: column;
-}
-#addDancer {
-    margin-bottom: 10px;
-    flex-grow: 1;
-    display: flex;
-    background-image: url("graphics/AddIcon.png");
-    background-size: contain;
-    background-position: bottom left;
-    background-repeat: no-repeat;
-    background-color: rgb(247, 247, 247);
-    border: outset;
-    /* border-radius: 10px; */
-}
-#addDancer > div { flex: 0 1 40px; }
-#removeDancer {
-    flex-grow: 1;
-    display: flex;
-    background-image: url("graphics/RemoveIcon.png");
-    background-size: contain;
-    background-position: bottom left;
-    background-repeat: no-repeat;
-    background-color: rgb(247, 247, 247);
-    border: outset;
-    /* border-radius: 10px; */
-}
-#removeDancer:disabled {
-    background-image: url("graphics/RemoveIconDisabled.png");
-}
-#removeDancer > div { flex: 0 1 40px; }
 #stageView {
     grid-area: canvas;
-    height: 100%;
-    width: 100%;
+    justify-self: stretch;
+    align-self: stretch;
 }
 #stageViewControls {
     grid-area: canvas;
     justify-self: end;
     align-self: start;
-    -webkit-user-select: none; /* Safari */
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* IE10+/Edge */
-    user-select: none; /* Standard */
 }
-#stageLegend {
-    grid-area: stageLegend;
-    overflow: auto;
-}
-#stageLegend > p {
-    margin: 2px;
-    text-align: start;
-}
+#dancerControls { grid-area: dancerControls; }
+#stageLegend { grid-area: stageLegend; }
 #formationComments {
     grid-area: formationComments;
     margin-top: 20px;
@@ -148,34 +91,4 @@ main {
     text-align: center;
 }
 
-#timeline {
-    grid-area: timeline;
-    overflow: auto;
-    justify-content: center;
-    display: flex;
-}
-.formationSlide {
-    height: 100%;
-    width: 200px;
-    justify-content: stretch;
-    align-items: stretch;
-    display: grid;
-    grid-template:
-        [row1-start] "slideTitle" 30px [row1-end]
-        [row2-start] "slideThumb" auto [row2-end]
-        / 200px;
-    overflow: hidden;
-}
-.formationSlide > p {
-    grid-area: slideTitle;
-    text-align: center;
-    margin: 0;
-    font-size: 1.8em;
-}
-.formationSlide > canvas {
-    grid-area: slideThumb;
-    border: solid 1px black;
-    border-radius: 10px;
-    height: calc(100% - 2px);
-    width: calc(100% - 2px);
-}
+#timeline { grid-area: timeline; }

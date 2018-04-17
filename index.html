@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="stageDrawing.css">
     <link rel="stylesheet" href="stageView.css">
+    <link rel="stylesheet" href="timeline.css">
 
     <!-- Load any supplemental Javascript libraries here -->
     <!-- ... -->
@@ -26,6 +27,7 @@
     <script src="trackedContext.js"></script>
     <script src="stageDrawing.js"></script>
     <script src="stageView.js"></script>
+    <script src="timeline.js"></script>
     <script src="main.js"></script>
 
 
@@ -48,7 +50,12 @@
             </button>
         </div>
         <div id="formationComments">Formation Comments</div>
-        <div id="timeline"></div>
+        <div id="timeline" oncontextmenu="return false;">
+            <div id="timelineControls">
+                <button id="addFormation">Add Formation</button>
+                <button id="deleteFormation" disabled>Delete Formation</button>
+            </div>
+        </div>
         <div id="music">music</div>
         <canvas id="stageView" oncontextmenu="return false;"></canvas>
         <div id="stageViewControls" oncontextmenu="return false;">

@@ -4,6 +4,8 @@
 //TODO: Showing and editing names
 //TODO: CTRL/Shift for selecting multiple, del for removing dancer
 
+const faceRotation = true;
+
 
 /** Implements the top and front stage views, with adding and removing dancers */
 class StageView extends EventTarget {
@@ -22,21 +24,11 @@ class StageView extends EventTarget {
         this.selected = []; //selected dancers
         this.dancers = []; //element format: {name: "name", x: 5.6, y: 20, angle: 37}
 
-        this.formations = [this.dancers]; //a list of dancers
-        this.selectedFormation = 1;
-        this.selectedFormationCtx = null;
         this.redrawThumb = false; //should the formation thumbnail be redrawn?
 
         this.stage = null;
         this.stageBounds = { maxX: 0, maxY: 0 }; //unconverted pixel size of stage (mins are both 0)
         this.stageWidth = 0; //estimation of real stage width, in centimeters
-
-        window.setInterval(() => {
-            if (this.selectedFormationCtx != null && this.redrawThumb) {
-                this.draw(this.selectedFormationCtx);
-                this.redrawThumb = false;
-            }
-        }, 1000);
 
         //---TESTING---
         let sW = 100;
@@ -87,11 +79,10 @@ class StageView extends EventTarget {
     }
 
     /** Draw the stage, dancers, etc. */
-    draw(ctx = this.ctx) {
+    draw(ctx = this.ctx, resize = false) {
         if (ctx === this.ctx)
             this.redrawThumb = true;
-        else {
-            ctx.setTransform();
+        else if(resize){
             this.resetView(ctx, parseInt(Util.getStyleValue(ctx.canvas, "width")),
                 parseInt(Util.getStyleValue(ctx.canvas, "height")));
         }
@@ -113,7 +104,7 @@ class StageView extends EventTarget {
 
             ctx.shadowBlur = 20;
             ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
-            ctx.fillStyle = 'rgb(255, 250, 240)';
+            ctx.fillStyle = 'rgb(255, 250, 245)';
             ctx.fill(this.stage);
 
             ctx.restore();
@@ -152,8 +143,7 @@ class StageView extends EventTarget {
             ctx.fillStyle = 'rgb(140, 140, 140)';
             ctx.beginPath();
             ctx.arc(0, 0, r, 0, Math.PI);
-            ctx.bezierCurveTo(-r * .4, r * .55,
-                r * .4, r * .55, r, 0);
+            ctx.bezierCurveTo(-r * .4, r * .55, r * .4, r * .55, r, 0);
             ctx.fill();
             ctx.strokeStyle = 'rgb(20, 20, 20)';
             ctx.stroke();
@@ -171,7 +161,7 @@ class StageView extends EventTarget {
             ctx.fill();
 
             //::DRAG HANDLE
-            if (this.selected.indexOf(dancer) != -1 && ctx === this.ctx) {
+            if (this.selected.indexOf(dancer) != -1 && ctx === this.ctx && !faceRotation) {
                 ctx.beginPath();
                 ctx.arc(0, r * 1.6, r * .4, 0, (9.8 / 6) * Math.PI);
                 ctx.arc(0, r * 1.6, r * .4 * 0.5, (9.5 / 6) * Math.PI, 0.04 * Math.PI, true);
@@ -190,6 +180,10 @@ class StageView extends EventTarget {
                 dancer.rotateIcon.closePath();
                 // ctx.strokeStyle = 'rgb(0, 0, 0)';
                 // ctx.stroke(dancer.rotateIcon);
+            }else if (faceRotation){
+                dancer.rotateIcon = new Path2D();
+                dancer.rotateIcon.arc(0, 0, r, 0, Math.PI);
+                dancer.rotateIcon.bezierCurveTo(-r * .4, r * .55, r * .4, r * .55, r, 0);
             }
 
             ctx.restore();
@@ -239,7 +233,7 @@ class StageView extends EventTarget {
         if (buttons === 1) { //left click
             for (let i = this.dancers.length - 1; i >= 0; i--) { //backwards so selected is chosen first
                 let dancer = this.dancers[i];
-                if (this.selected.indexOf(dancer) != -1) {
+                if (this.selected.indexOf(dancer) != -1 || faceRotation) {
                     this.ctx.save();
                     this.ctx.translate(dancer.x, dancer.y);
                     this.ctx.rotate(dancer.angle);

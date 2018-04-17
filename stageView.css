@@ -6,9 +6,6 @@
 }
 #stageViewControls {
     border: none;
-    grid-area: canvas;
-    justify-self: end;
-    align-self: start;
     display: flex;
     justify-content: space-between;
     margin: 7px -4px 0 0;
@@ -31,3 +28,38 @@
     margin-right: 10px;
 }
 #resetView:focus {outline:0;}
+
+
+#dancerControls {
+    display: flex;
+    flex-direction: column;
+}
+
+#addDancer, #removeDancer {
+    flex-grow: 1;
+    display: flex;
+    background-size: contain;
+    background-position: bottom left;
+    background-repeat: no-repeat;
+    background-color: rgb(247, 247, 247);
+    border: outset;
+    /* border-radius: 10px; */
+}
+#addDancer {
+    margin-bottom: 10px;
+    background-image: url("graphics/AddIcon.png");
+}
+#removeDancer {
+    background-image: url("graphics/RemoveIcon.png");
+}
+#removeDancer:disabled {
+    background-image: url("graphics/RemoveIconDisabled.png");
+}
+#addDancer > div , #removeDancer > div { flex: 0 1 40px; }
+
+
+#stageLegend { overflow: auto; }
+#stageLegend > p {
+    margin: 2px;
+    text-align: start;
+}
