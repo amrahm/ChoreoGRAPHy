@@ -53,6 +53,10 @@ Util.events(document, {
                 stageView.mouseclick(getCanvasCoords(evt));
                 return evt.preventDefault() && false;
             },
+            "dblclick": evt => {
+                stageView.dblclick(getCanvasCoords(evt));
+                return evt.preventDefault() && false;
+            },
             "mousewheel": evt => {
                 stageView.mousewheel(evt, getCanvasCoords(evt));
                 return evt.preventDefault() && false;
@@ -72,13 +76,15 @@ Util.events(document, {
         }, 1000);
     },
     "mousemove": function (evt) {
-        if (stageView.isDragging()) {
-            stageView.mousemove(getCanvasCoords(evt));
-            return evt.preventDefault() && false;
-        } else if (timeline.mouse.dragging) {
+        if (timeline.mouse.dragging) {
             timeline.mouse.x = evt.clientX;
             timeline.dragSlide(evt);
             return evt.preventDefault() && false;
+        } else {
+            stageView.mousemove(getCanvasCoords(evt));
+            if (stageView.isDragging()) {
+                return evt.preventDefault() && false;
+            }
         }
     },
     "mouseup": evt => {
@@ -92,6 +98,16 @@ Util.events(document, {
         let wasDragging = timeline.mouse.dragging || stageView.isDragging();
         stageView.mouseenter(evt.buttons);
         if (wasDragging) return evt.preventDefault() && false;
+    },
+    "keypress": evt => {
+        stageView.keypress(evt);
+        return evt.preventDefault() && false;
+    },
+    "keydown": evt => {
+        stageView.keydown(evt);
+    },
+    "keyup": evt => {
+        return evt.preventDefault() && false;
     }
 });
 function getCanvasCoords(evt) {

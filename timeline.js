@@ -1,3 +1,5 @@
+//TODO: Transitions
+
 class Timeline {
     constructor(slideT, slideWidth, slideHeight, slideSpacing, slideSmaller) {
         this.formations = []; //element format: {name: "name", slide: slide, ctx: ctx}
@@ -66,7 +68,6 @@ class Timeline {
             dom.root.style.setProperty("--slide-height", "130px");
             dom.root.style.setProperty("--extra", "2em + 22px");
             dom.root.style.setProperty("--down", "4px");
-            console.log("SMALLER");
         }
     }
     selectFormation(i = this.curr) {
@@ -84,16 +85,14 @@ class Timeline {
                 if (currFrame < frames) scrollAnim(frames, currFrame + 1);
             });
         };
-        let left = formation.slide.offsetLeft - this.slideWidth / 2;
-        let right = this.slideSpace * (i + 1.5 / this.slideSmaller) - dom.timeline.clientWidth;
+        let left = formation.slide.offsetLeft - this.slideSpace / 2;
+        let right = formation.slide.offsetLeft + this.slideSpace * 1.5 - dom.timeline.clientWidth;
         if (dom.timeline.scrollLeft > left) {
             this.scrollTarget = left;
             scrollAnim(30);
-            console.log("TOO FAR", left);
         } else if (dom.timeline.scrollLeft < right) {
             this.scrollTarget = right;
             scrollAnim(30);
-            console.log("TOO SHORT", right);
         }
         dom.removeDancer.disabled = true;
         stageView.selected = [];
@@ -118,7 +117,6 @@ class Timeline {
             dom.root.style.setProperty("--slide-height", "140px");
             dom.root.style.setProperty("--extra", "2em + 12px");
             dom.root.style.setProperty("--down", "12px");
-            console.log("BIGGER");
         }
     }
     resetOrder() {

@@ -1,11 +1,11 @@
 //TODO: Zoom min and max
 //TODO: Undo/Redo
 //TODO: Front view
-//TODO: Showing and editing names
 //TODO: CTRL/Shift for selecting multiple, del for removing dancer
 
-const faceRotation = true;
+const faceRotation = false;
 const dancerSize = 20; //radius of dancer, in centimeters
+const dancerFontSize = 25; //in px
 
 /** Implements the top and front stage views, with adding and removing dancers */
 class StageView extends EventTarget {
@@ -16,7 +16,10 @@ class StageView extends EventTarget {
         this.height = null; //^
         this.pageDrag = null; //dragging page
         this.dragging = null; //dragged dancer
+        this.hovering = null; //dancer under mouse
         this.rotating = null; //rotating dancer
+        this.renaming = null; //renaming dancer
+        this.renamingStart = false; //reset name only for first letter typed
         this.selP1 = null; //Start point of box selection
         this.selP2 = null; //End point of box selection
         this.selectionBox = null; //The actual box, for hitTesting
@@ -42,20 +45,6 @@ class StageView extends EventTarget {
         this.stage.closePath();
         this.stageBounds = { maxX: sW, maxY: sH };
         this.stageWidth = 500;
-
-        // this.dancers.push({ name: "name", x: 0, y: 0, angle: 0 });
-        // this.dancers.push({ name: "name", x: 500, y: 0, angle: 0 });
-        // this.dancers.push({ name: "name", x: 1000, y: 0, angle: 0 });
-        // this.dancers.push({ name: "name", x: 0, y: 500, angle: 0 });
-        // this.dancers.push({ name: "name", x: 500, y: 500, angle: 0 });
-        // this.dancers.push({ name: "name", x: 1000, y: 500, angle: 0 });
-        // this.dancers.push({ name: "name", x: 0, y: 1000, angle: 0 });
-        // this.dancers.push({ name: "name", x: 500, y: 1000, angle: 0 });
-        // this.dancers.push({ name: "name", x: 1000, y: 1000, angle: 0 });
-        // let scalar = this.stageWidth / sW;
-        // let cent = { name: "Center", x: sW * scalar / 2, y: sH * scalar / 2, angle: 0 };
-        // this.dancers.push(cent);
-        // this.selected.push(cent);
     }
 
     /** Respond to window resize so that drawings don't get distorted. */
@@ -136,7 +125,8 @@ class StageView extends EventTarget {
             ctx.strokeStyle = 'rgb(200, 200, 200)';
             ctx.stroke();
 
-            ///:::FACE
+            //:::::::ROTATED STUFF:::::::
+            //:::FACE
             ctx.save();
             ctx.translate(pos.x, pos.y);
             ctx.rotate(pos.angle);
@@ -149,7 +139,7 @@ class StageView extends EventTarget {
             ctx.strokeStyle = 'rgb(20, 20, 20)';
             ctx.stroke();
 
-            //::EYES
+            //:::EYES
             ctx.fillStyle = 'rgb(250, 250, 250)';
             ctx.beginPath();
             ctx.arc(r * .45, r * .6, r / 5, 0, Math.PI * 2);
@@ -161,17 +151,85 @@ class StageView extends EventTarget {
             ctx.arc(-r * .45, r * .65, r / 10, 0, Math.PI * 2);
             ctx.fill();
 
-            //::DRAG HANDLE
-            if (this.selected.indexOf(dancer) != -1 && ctx === this.ctx && !faceRotation) {
-                ctx.beginPath();
-                ctx.arc(0, r * 1.6, r * .4, 0, (9.8 / 6) * Math.PI);
-                ctx.arc(0, r * 1.6, r * .4 * 0.5, (9.5 / 6) * Math.PI, 0.04 * Math.PI, true);
-                ctx.lineTo(r * 0.05, r * 1.65);
-                ctx.lineTo(r * 0.24, r * 1.37);
-                ctx.lineTo(r * 0.54, r * 1.58);
-                ctx.closePath();
+            //:::DRAG HANDLE part 1
+            if (faceRotation) {
+                dancer.rotateIcon = new Path2D();
+                dancer.rotateIcon.arc(0, 0, r, 0, Math.PI);
+                dancer.rotateIcon.bezierCurveTo(-r * .4, r * .55, r * .4, r * .55, r, 0);
+            }
+
+
+            //:::NAME
+            ctx.save();
+            let flipped = false;
+            if (pos.angle > Math.PI / 2 || pos.angle < -Math.PI / 2) {
+                ctx.rotate(Math.PI);
+                ctx.textBaseline = "middle"
+                flipped = true;
+            } else {
+                ctx.textBaseline = "alphabetic baseline"
+            }
+            let size = dancerFontSize;
+            //normal normal 700 1.7em 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+            ctx.font = `normal normal 700 ${size}px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`;
+            ctx.textAlign = "center";
+            let smaller = false;
+            let width = ctx.measureText(dancer.name).width;
+            if (r / width * 2 < 1 && this.renaming !== dancer && this.hovering !== dancer &&
+                !(this.selected.length === 1 && this.selected.indexOf(dancer) != -1)) {
+                size *= r / width * 2;
+                ctx.font = `normal normal 700 ${size}px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`;
+                width = ctx.measureText(dancer.name).width;
+                smaller = true;
+            }
+
+            let height = size;
+            let offset = flipped ? -height / 2 : -height + height / 8;
+            if (this.renamingStart && this.renaming === dancer) {
+                this.ctx.fillStyle = 'rgba(130, 166, 255, .5)';
+                ctx.fillRect(-width / 2, offset, width, height);
+            } else if (this.renaming === dancer) {
+                this.ctx.fillStyle = 'rgba(200, 186, 160, .5)';
+                ctx.fillRect(-width / 2, offset, width, height);
+            }
+
+            ctx.strokeStyle = 'rgb(0, 0, 0)';
+            if (!smaller) {
+                ctx.strokeText(dancer.name, .5, .5);
+                ctx.strokeText(dancer.name, -.5, .5);
+                ctx.strokeText(dancer.name, .5, -.5);
+                ctx.strokeText(dancer.name, -.5, -.5);
+            } else {
+                ctx.strokeText(dancer.name, 0, 0);
+            }
+            ctx.fillStyle = 'rgb(255, 255, 255)';
+            ctx.fillText(dancer.name, 0, 0);
+            ctx.restore();
+
+            ctx.restore();
+        });
+
+        //:::DRAG HANDLE part 2
+        if (ctx === this.ctx && !faceRotation) {
+
+            this.selected.forEach(dancer => {
+                let pos = dancer.positions[formation];
+                let r = dancerSize;
+                ctx.save();
+                ctx.translate(pos.x, pos.y);
+                ctx.rotate(pos.angle);
+
+                let icon = new Path2D();
+                icon.arc(0, r * 1.6, r * .4, 0, (9.8 / 6) * Math.PI);
+                icon.arc(0, r * 1.6, r * .4 * 0.5, (9.5 / 6) * Math.PI, 0.04 * Math.PI, true);
+                icon.lineTo(r * 0.05, r * 1.65);
+                icon.lineTo(r * 0.24, r * 1.37);
+                icon.lineTo(r * 0.54, r * 1.58);
+                icon.closePath();
                 ctx.fillStyle = 'rgb(0, 0, 0)';
-                ctx.fill();
+                ctx.fill(icon);
+                ctx.strokeStyle = 'rgb(255, 255, 255)';
+                ctx.stroke(icon);
 
                 dancer.rotateIcon = new Path2D(); //bounding box to make clicking easier
                 dancer.rotateIcon.moveTo(-r * 0.5, r * 1.1);
@@ -181,14 +239,10 @@ class StageView extends EventTarget {
                 dancer.rotateIcon.closePath();
                 // ctx.strokeStyle = 'rgb(0, 0, 0)';
                 // ctx.stroke(dancer.rotateIcon);
-            } else if (faceRotation) {
-                dancer.rotateIcon = new Path2D();
-                dancer.rotateIcon.arc(0, 0, r, 0, Math.PI);
-                dancer.rotateIcon.bezierCurveTo(-r * .4, r * .55, r * .4, r * .55, r, 0);
-            }
 
-            ctx.restore();
-        });
+                ctx.restore();
+            });
+        }
 
         //:::BOX SELECT
         if (this.selP1 != null && this.selP2 != null && ctx === this.ctx) {
@@ -221,7 +275,11 @@ class StageView extends EventTarget {
             pos.push(i == timeline.curr ? { x: pt.x, y: pt.y, angle: 0 } :
                 { x: this.stageWidth / 2, y: -dancerSize * 1.2, angle: 0 });
         }
-        this.dancers.push({ name: "name", positions: pos });
+        let dancer = { name: "name", positions: pos };
+        this.dancers.push(dancer);
+        this.selected = [dancer];
+        this.renaming = dancer;
+        this.renamingStart = true;
         this.draw();
         for (let i = 0; i < timeline.formations.length; i++) {
             this.draw(timeline.formations[i].ctx, false, i);
@@ -231,6 +289,7 @@ class StageView extends EventTarget {
         //TODO: should have a dialogue box to confirm that this deletes this dancer from all formations
         if (this.selected.length > 0) {
             this.dancers = this.dancers.filter(dancer => this.selected.indexOf(dancer) === -1);
+            this.selected = [];
             this.draw();
             for (let i = 0; i < timeline.formations.length; i++) {
                 this.draw(timeline.formations[i].ctx, false, i);
@@ -243,11 +302,28 @@ class StageView extends EventTarget {
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
         this.lastM = mouseT;
         this.dragged = false;
+        this.renaming = null;
+        this.renamingStart = false;
         if (buttons === 1) { //left click
+            if (!faceRotation) {
+                for (let i = this.selected.length - 1; i >= 0; i--) {
+                    let dancer = this.selected[i];
+                    let pos = dancer.positions[timeline.curr];
+                    this.ctx.save();
+                    this.ctx.translate(pos.x, pos.y);
+                    this.ctx.rotate(pos.angle);
+                    if (this.ctx.isPointInPath(dancer.rotateIcon, mouse.x, mouse.y)) {
+                        this.rotating = dancer;
+                        this.ctx.restore();
+                        return;
+                    }
+                    this.ctx.restore();
+                }
+            }
             for (let i = this.dancers.length - 1; i >= 0; i--) { //backwards so top-most is chosen first
                 let dancer = this.dancers[i];
                 let pos = dancer.positions[timeline.curr];
-                if (this.selected.indexOf(dancer) != -1 || faceRotation) {
+                if (faceRotation) {
                     this.ctx.save();
                     this.ctx.translate(pos.x, pos.y);
                     this.ctx.rotate(pos.angle);
@@ -315,6 +391,23 @@ class StageView extends EventTarget {
             dom.stageViewControls.style.display = "none";
             this.draw();
         }
+        let setHovering = false;
+        for (let i = this.dancers.length - 1; i >= 0; i--) { //backwards so top-most is chosen first
+            let dancer = this.dancers[i];
+            let pos = dancer.positions[timeline.curr];
+            if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerSize) ** 2) {
+                this.moveDancerToEnd(dancer, i,
+                    this.selected.indexOf(dancer) === -1 ? this.selected.length + 1 : 1);
+                this.hovering = dancer;
+                setHovering = true;
+                this.draw();
+                break;
+            }
+        }
+        if (!setHovering && this.hovering !== null) {
+            this.hovering = null;
+            this.draw();
+        }
         this.lastM = mouseT;
     }
     mouseup() {
@@ -346,13 +439,13 @@ class StageView extends EventTarget {
     }
     mouseclick(mouse) {
         if (this.dragged) return; //clicked, but then dragged
-        mouse = this.ctx.transformedPoint(mouse.x, mouse.y);
+        let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
         this.selected = [];
         //forwards so that if overlapped, non-selected will be selected
         for (let i = 0; i < this.dancers.length; i++) {
             let dancer = this.dancers[i];
             let pos = dancer.positions[timeline.curr];
-            if ((pos.x - mouse.x) ** 2 + (pos.y - mouse.y) ** 2 < (dancerSize) ** 2) {
+            if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerSize) ** 2) {
                 this.selected.push(dancer);
                 this.rotating = null;
                 this.dragging = null;
@@ -368,7 +461,7 @@ class StageView extends EventTarget {
     /** Moves the specified dancer to the end of the dancers array.
      * @param {*} dancer the dancer to move
      * @param {*} i the index of that dancer
-     * @param {*} n should be incremented to 1 + the number of swapped dancers */
+     * @param {*} n distance from end to move dancer */
     moveDancerToEnd(dancer, i, n = 1) {
         let temp = this.dancers[this.dancers.length - n] //swap to make selected on top
         this.dancers[this.dancers.length - n] = dancer;
@@ -377,6 +470,56 @@ class StageView extends EventTarget {
     /** Returns whether or not anything is currently being dragged */
     isDragging() {
         return this.dragging != null || this.rotating != null || this.pageDrag != null || this.selP1 != null;
+    }
+
+    dblclick(mouse) {
+        let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
+        for (let i = this.dancers.length - 1; i >= 0; i--) {
+            let dancer = this.dancers[i];
+            let pos = dancer.positions[timeline.curr];
+            if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerSize) ** 2) {
+                this.renaming = dancer;
+                this.renamingStart = true;
+                this.rotating = null;
+                this.dragging = null;
+                this.moveDancerToEnd(dancer, i);
+                this.draw();
+                return;
+            }
+        }
+    }
+    keypress(evt) {
+        if (this.renaming === null) return;
+        if (evt.keyCode === 13) { //Enter
+            this.renaming = null;
+            this.renamingStart = false;
+            this.draw();
+            return;
+        }
+        if (this.renamingStart) {
+            this.renaming.name = evt.key;
+            this.renamingStart = false;
+        } else {
+            this.renaming.name += evt.key;
+        }
+        this.draw();
+    }
+    keydown(evt) {
+        if (this.renaming === null) return;
+        if (evt.keyCode === 8) { //Backspace
+            if (this.renamingStart) {
+                this.renaming.name = "";
+                this.renamingStart = false;
+            } else {
+                this.renaming.name = this.renaming.name.substring(0, this.renaming.name.length - 1);
+            }
+            this.draw();
+            return evt.preventDefault() && false;
+        } else if (evt.keyCode === 37 || evt.keyCode === 39 && this.renamingStart) { //left and right
+            this.renamingStart = false;
+            this.draw();
+            return evt.preventDefault() && false;
+        }
     }
 
     mousewheel(evt, mouse) {

@@ -45,6 +45,10 @@
     border: outset;
     /* border-radius: 10px; */
 }
+#addDancer:active, #removeDancer:active {
+    border: inset;
+
+}
 #addDancer {
     margin-bottom: 10px;
     background-image: url("graphics/AddIcon.png");
