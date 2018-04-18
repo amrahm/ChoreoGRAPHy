@@ -21,7 +21,7 @@ main {
         [row4-start] "groups . canvas canvas canvas . formationComments formationComments ." auto [row4-end]
         [row5-start] "groups . canvas canvas canvas . formationComments formationComments ." auto [row5-end]
         [row6-start] "stageLegend . canvas canvas canvas . formationComments formationComments ." 100px [row6-end]
-        [row7-start] "timeline timeline timeline timeline timeline timeline timeline timeline timeline" calc(var(--slide-height) + 2em + 10px) [row7-end]
+        [row7-start] "timeline timeline timeline timeline timeline timeline timelineControls timelineControls timelineControls" calc(var(--slide-height) + var(--extra)) [row7-end]
         [row8-start] "music music music music music music music music music" 50px [row8-end]
         / 5fr 20px 8fr 8fr 8fr 20px 4fr 1fr 20px;
 }
@@ -92,3 +92,4 @@ main {
 }
 
 #timeline { grid-area: timeline; }
+#timelineControls { grid-area: timelineControls };

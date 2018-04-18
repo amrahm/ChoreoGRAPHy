@@ -58,8 +58,12 @@
 #addDancer > div , #removeDancer > div { flex: 0 1 40px; }
 
 
-#stageLegend { overflow: auto; }
-#stageLegend > p {
-    margin: 2px;
+#stageLegend {
+    overflow: auto;
+    margin: 0 0 0 0;
+    padding: 0 0 0 20px;
+}
+#stageLegend > li {
+    margin: 0;
     text-align: start;
 }

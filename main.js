@@ -1,17 +1,20 @@
 let dom = {}; //Holds DOM elements that don’t change, to avoid repeatedly querying the DOM
 let stageDrawing = new StageDrawing(); //load stageDrawing code
 let stageView = new StageView(); //load stageView code
-let timeline = new Timeline(); //load stageView code
+let timeline; //load stageView code, initialized when content loaded
 
 //Attaching events on document
 Util.events(document, {
     //runs at the end of start-up when the DOM is ready
     "DOMContentLoaded": () => {
+        dom.root = Util.one("html");
         dom.stageDrawing = Util.one("#stageDrawing");
         dom.timeline = Util.one("#timeline");
-        timeline.slideT = parseFloat(getComputedStyle(dom.timeline).getPropertyValue("--slide-t"));
-        timeline.slideWidth = parseFloat(getComputedStyle(dom.timeline).getPropertyValue("--slide-width"));
-        timeline.slideHeight = parseFloat(getComputedStyle(dom.timeline).getPropertyValue("--slide-height"));
+        timeline = new Timeline(parseFloat(Util.getStyleValue(dom.root, "--slide-t")),
+            parseFloat(Util.getStyleValue(dom.root, "--slide-width")),
+            parseFloat(Util.getStyleValue(dom.root, "--slide-height")),
+            parseFloat(Util.getStyleValue(dom.root, "--slide-spacing")),
+            parseFloat(Util.getStyleValue(dom.root, "--slide-smaller")));
         dom.confirmStage = Util.one("#confirmStage");
         dom.addDancer = Util.one("#addDancer");
         dom.removeDancer = Util.one("#removeDancer");
@@ -23,6 +26,8 @@ Util.events(document, {
         dom.stageViewControls.style.display = "inline";
         dom.addFormation = Util.one("#addFormation");
         dom.deleteFormation = Util.one("#deleteFormation");
+        dom.timelinePaddingLeft = Util.one("#timelinePaddingLeft");
+        dom.timelinePaddingRight = Util.one("#timelinePaddingRight");
 
 
 
@@ -49,7 +54,7 @@ Util.events(document, {
                 return evt.preventDefault() && false;
             },
             "mousewheel": evt => {
-                stageView.mousewheel(evt);
+                stageView.mousewheel(evt, getCanvasCoords(evt));
                 return evt.preventDefault() && false;
             }
         });

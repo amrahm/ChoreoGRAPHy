@@ -51,11 +51,13 @@
         </div>
         <div id="formationComments">Formation Comments</div>
         <div id="timeline" oncontextmenu="return false;">
-            <div id="timelineControls">
+            <div id="timelinePaddingLeft"></div>
+            <div id="timelinePaddingRight"></div>
+        </div>
+        <div id="timelineControls">
                 <button id="addFormation">Add Formation</button>
                 <button id="deleteFormation" disabled>Delete Formation</button>
             </div>
-        </div>
         <div id="music">music</div>
         <canvas id="stageView" oncontextmenu="return false;"></canvas>
         <div id="stageViewControls" oncontextmenu="return false;">
@@ -63,11 +65,13 @@
             <input id="zoomOut" type="image" src="graphics/MinusIcon.png" alt="Zoom Out">
             <input id="resetView" type="image" src="graphics/ResetIcon.png" alt="Reset View">
         </div>
-        <div id="stageLegend">
-            <p>Click/drag to select dancers.</p>
-            <p>Right click to pan.</p>
-            <p>Scroll to zoom.</p>
-        </div>
+        <ul id="stageLegend">
+            <li>Click/drag to select dancers</li>
+            <li>Click face to rotate dancer</li>
+            <li>Double click to rename</li>
+            <li>Right click to pan</li>
+            <li>Scroll to zoom</li>
+        </ul>
     </main>
 
 </body>

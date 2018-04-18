@@ -5,7 +5,7 @@
 //TODO: CTRL/Shift for selecting multiple, del for removing dancer
 
 const faceRotation = true;
-
+const dancerSize = 20; //radius of dancer, in centimeters
 
 /** Implements the top and front stage views, with adding and removing dancers */
 class StageView extends EventTarget {
@@ -14,7 +14,6 @@ class StageView extends EventTarget {
         this.ctx = null; //initialized in main.js
         this.width = null; //initialized in respondCanvas()
         this.height = null; //^
-        this.dancerSize = 20; //radius of dancer, in centimeters
         this.pageDrag = null; //dragging page
         this.dragging = null; //dragged dancer
         this.rotating = null; //rotating dancer
@@ -22,7 +21,7 @@ class StageView extends EventTarget {
         this.selP2 = null; //End point of box selection
         this.selectionBox = null; //The actual box, for hitTesting
         this.selected = []; //selected dancers
-        this.dancers = []; //element format: {name: "name", x: 5.6, y: 20, angle: 37}
+        this.dancers = []; //ex: {name: "name", positions: [pos, ...]}; pos = {x: x, y:y, angle: angle}
 
         this.redrawThumb = false; //should the formation thumbnail be redrawn?
 
@@ -76,13 +75,14 @@ class StageView extends EventTarget {
             this.resetView();
         }
         this.draw();
+        timeline.resizeSlides();
     }
 
     /** Draw the stage, dancers, etc. */
-    draw(ctx = this.ctx, resize = false) {
+    draw(ctx = this.ctx, resize = false, formation = timeline.curr) {
         if (ctx === this.ctx)
             this.redrawThumb = true;
-        else if(resize){
+        else if (resize) {
             this.resetView(ctx, parseInt(Util.getStyleValue(ctx.canvas, "width")),
                 parseInt(Util.getStyleValue(ctx.canvas, "height")));
         }
@@ -112,7 +112,8 @@ class StageView extends EventTarget {
 
         //:::DANCERS
         this.dancers.forEach(dancer => {
-            let r = this.dancerSize;
+            let pos = dancer.positions[formation];
+            let r = dancerSize;
 
             //:::MAIN CIRCLE
             if (this.dragging === dancer && ctx === this.ctx) {
@@ -129,7 +130,7 @@ class StageView extends EventTarget {
             }
             ctx.fillStyle = 'rgb(60, 60, 60)';
             ctx.beginPath();
-            ctx.arc(dancer.x, dancer.y, r, 0, Math.PI * 2);
+            ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
             ctx.fill();
             ctx.shadowBlur = 0;
             ctx.strokeStyle = 'rgb(200, 200, 200)';
@@ -137,8 +138,8 @@ class StageView extends EventTarget {
 
             ///:::FACE
             ctx.save();
-            ctx.translate(dancer.x, dancer.y);
-            ctx.rotate(dancer.angle);
+            ctx.translate(pos.x, pos.y);
+            ctx.rotate(pos.angle);
 
             ctx.fillStyle = 'rgb(140, 140, 140)';
             ctx.beginPath();
@@ -180,7 +181,7 @@ class StageView extends EventTarget {
                 dancer.rotateIcon.closePath();
                 // ctx.strokeStyle = 'rgb(0, 0, 0)';
                 // ctx.stroke(dancer.rotateIcon);
-            }else if (faceRotation){
+            } else if (faceRotation) {
                 dancer.rotateIcon = new Path2D();
                 dancer.rotateIcon.arc(0, 0, r, 0, Math.PI);
                 dancer.rotateIcon.bezierCurveTo(-r * .4, r * .55, r * .4, r * .55, r, 0);
@@ -207,21 +208,33 @@ class StageView extends EventTarget {
         do { //move to non-overlapping location
             safe = true;
             this.dancers.forEach(dancer => {
-                if ((dancer.x - pt.x) ** 2 + (dancer.y - pt.y) ** 2 < (this.dancerSize * 2) ** 2) {
+                let pos = dancer.positions[timeline.curr];
+                if ((pos.x - pt.x) ** 2 + (pos.y - pt.y) ** 2 < (dancerSize * 2) ** 2) {
                     safe = false;
-                    pt.x += this.dancerSize * (Math.random() < 0.5 ? -1 : 1);
-                    pt.y += this.dancerSize * (Math.random() < 0.5 ? -1 : 1);
+                    pt.x += dancerSize * (Math.random() < 0.5 ? -1 : 1);
+                    pt.y += dancerSize * (Math.random() < 0.5 ? -1 : 1);
                 }
             });
         } while (!safe);
-        this.dancers.push({ name: "name", x: pt.x, y: pt.y, angle: 0 });
+        let pos = [];
+        for (let i = 0; i < timeline.formations.length; i++) {
+            pos.push(i == timeline.curr ? { x: pt.x, y: pt.y, angle: 0 } :
+                { x: this.stageWidth / 2, y: -dancerSize * 1.2, angle: 0 });
+        }
+        this.dancers.push({ name: "name", positions: pos });
         this.draw();
+        for (let i = 0; i < timeline.formations.length; i++) {
+            this.draw(timeline.formations[i].ctx, false, i);
+        }
     }
     removeDancer() {
-        //TODO should have a dialogue box asking if to delete from this formation, all before, all after, or all (options based on position and number of formations)
+        //TODO: should have a dialogue box to confirm that this deletes this dancer from all formations
         if (this.selected.length > 0) {
             this.dancers = this.dancers.filter(dancer => this.selected.indexOf(dancer) === -1);
             this.draw();
+            for (let i = 0; i < timeline.formations.length; i++) {
+                this.draw(timeline.formations[i].ctx, false, i);
+            }
         }
         dom.removeDancer.disabled = true;
     }
@@ -231,12 +244,13 @@ class StageView extends EventTarget {
         this.lastM = mouseT;
         this.dragged = false;
         if (buttons === 1) { //left click
-            for (let i = this.dancers.length - 1; i >= 0; i--) { //backwards so selected is chosen first
+            for (let i = this.dancers.length - 1; i >= 0; i--) { //backwards so top-most is chosen first
                 let dancer = this.dancers[i];
+                let pos = dancer.positions[timeline.curr];
                 if (this.selected.indexOf(dancer) != -1 || faceRotation) {
                     this.ctx.save();
-                    this.ctx.translate(dancer.x, dancer.y);
-                    this.ctx.rotate(dancer.angle);
+                    this.ctx.translate(pos.x, pos.y);
+                    this.ctx.rotate(pos.angle);
                     if (this.ctx.isPointInPath(dancer.rotateIcon, mouse.x, mouse.y)) {
                         this.moveDancerToEnd(dancer, i);
                         if (this.selected.indexOf(dancer) === -1) this.selected = [];
@@ -247,7 +261,7 @@ class StageView extends EventTarget {
                     this.ctx.restore();
                 }
 
-                if ((dancer.x - mouseT.x) ** 2 + (dancer.y - mouseT.y) ** 2 < (this.dancerSize) ** 2) {
+                if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerSize) ** 2) {
                     this.moveDancerToEnd(dancer, i);
                     if (this.selected.indexOf(dancer) === -1) this.selected = [];
                     this.dragging = dancer;
@@ -266,25 +280,29 @@ class StageView extends EventTarget {
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
         this.dragged = true;
         if (this.dragging != null) {
-            this.dragging.x += mouseT.x - this.lastM.x;
-            this.dragging.y += mouseT.y - this.lastM.y;
+            let pos = this.dragging.positions[timeline.curr];
+            pos.x += mouseT.x - this.lastM.x;
+            pos.y += mouseT.y - this.lastM.y;
             this.selected.forEach(dancer => {
+                let posOther = dancer.positions[timeline.curr];
                 if (dancer != this.dragging) {
-                    dancer.x += mouseT.x - this.lastM.x;
-                    dancer.y += mouseT.y - this.lastM.y;
+                    posOther.x += mouseT.x - this.lastM.x;
+                    posOther.y += mouseT.y - this.lastM.y;
                 }
             });
             dom.stageViewControls.style.display = "none";
             this.draw();
         } else if (this.rotating != null) {
-            let oldA = this.rotating.angle;
-            let moveX = mouseT.x - this.rotating.x;
-            let moveY = mouseT.y - this.rotating.y;
+            let pos = this.rotating.positions[timeline.curr];
+            let oldA = pos.angle;
+            let moveX = mouseT.x - pos.x;
+            let moveY = mouseT.y - pos.y;
             let dotNormal = moveY / Math.sqrt(moveX ** 2 + moveY ** 2);
-            let dir = mouseT.x < this.rotating.x ? 1 : -1;
-            this.rotating.angle = Math.acos(dotNormal) * dir;
+            let dir = mouseT.x < pos.x ? 1 : -1;
+            pos.angle = Math.acos(dotNormal) * dir;
             this.selected.forEach(dancer => {
-                if (dancer != this.rotating) dancer.angle += this.rotating.angle - oldA;
+                let posOther = dancer.positions[timeline.curr];
+                if (dancer != this.rotating) posOther.angle += pos.angle - oldA;
             });
             dom.stageViewControls.style.display = "none";
             this.draw();
@@ -306,7 +324,8 @@ class StageView extends EventTarget {
         this.pageDrag = null;
         if (this.selP1 != null && this.selP2 != null) {
             this.selected = this.dancers.filter(dancer => {
-                let danceT = this.ctx.untransformedPoint(dancer.x, dancer.y);
+                let pos = dancer.positions[timeline.curr];
+                let danceT = this.ctx.untransformedPoint(pos.x, pos.y);
                 return this.ctx.isPointInPath(this.selectionBox, danceT.x, danceT.y);
             });
             let n = 1;
@@ -332,7 +351,8 @@ class StageView extends EventTarget {
         //forwards so that if overlapped, non-selected will be selected
         for (let i = 0; i < this.dancers.length; i++) {
             let dancer = this.dancers[i];
-            if ((dancer.x - mouse.x) ** 2 + (dancer.y - mouse.y) ** 2 < (this.dancerSize) ** 2) {
+            let pos = dancer.positions[timeline.curr];
+            if ((pos.x - mouse.x) ** 2 + (pos.y - mouse.y) ** 2 < (dancerSize) ** 2) {
                 this.selected.push(dancer);
                 this.rotating = null;
                 this.dragging = null;
@@ -359,9 +379,9 @@ class StageView extends EventTarget {
         return this.dragging != null || this.rotating != null || this.pageDrag != null || this.selP1 != null;
     }
 
-    mousewheel(evt) {
+    mousewheel(evt, mouse) {
         let delta = evt.wheelDelta ? evt.wheelDelta / 40 : (evt.detail ? -evt.detail : 0);
-        if (delta) this.zoom(delta, this.lastM);
+        if (delta) this.zoom(delta, this.ctx.transformedPoint(mouse.x, mouse.y));
     }
     /** Zoom the canvas in, centered on a point.
      * @param {number} clicks how far to zoom in
@@ -380,8 +400,7 @@ class StageView extends EventTarget {
     zoomAnim(frames, clicksPerFrame) {
         requestAnimationFrame(() => {
             this.zoom(clicksPerFrame, this.ctx.transformedPoint(this.width / 2, this.height / 2));
-            clicksPerFrame *= .7;
-            if (frames > 0) this.zoomAnim(frames - 1, clicksPerFrame);
+            if (frames > 0) this.zoomAnim(frames - 1, clicksPerFrame * 0.7);
         });
     }
     resetView(ctx = this.ctx, width = this.width, height = this.height) {
