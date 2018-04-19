@@ -355,6 +355,8 @@ class StageView extends EventTarget {
     }
     mousemove(mouse) {
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
+        if (this.lastM != null && Math.abs(this.lastM.x - mouseT.x) < 0.01 && Math.abs(this.lastM.y - mouseT.y) < 0.01) 
+            return; //For some reason mousemove is being called on mousedown even when no movement???
         this.dragged = true;
         if (this.dragging != null) {
             let pos = this.dragging.positions[timeline.curr];

@@ -75,7 +75,7 @@ Util.events(document, {
             }
         }, 1000);
     },
-    "mousemove": function (evt) {
+    "mousemove": evt => {
         if (timeline.mouse.dragging) {
             timeline.mouse.x = evt.clientX;
             timeline.dragSlide(evt);
@@ -107,7 +107,7 @@ Util.events(document, {
         stageView.keydown(evt);
     },
     "keyup": evt => {
-        return evt.preventDefault() && false;
+        return evt.preventDefault() && false; //prevent space/enter from adding more dancers
     }
 });
 function getCanvasCoords(evt) {
