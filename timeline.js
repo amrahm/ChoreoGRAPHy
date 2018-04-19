@@ -94,10 +94,7 @@ class Timeline {
             this.scrollTarget = right;
             scrollAnim(30);
         }
-        dom.removeDancer.disabled = true;
-        stageView.selected = [];
         stageView.draw();
-        setTimeout(() => stageView.draw(), this.slideT * 1000);
     }
     deleteFormation() {
         let del = this.formations.splice(this.curr, 1)[0];

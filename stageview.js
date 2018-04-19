@@ -75,13 +75,10 @@ class StageView extends EventTarget {
             this.resetView(ctx, parseInt(Util.getStyleValue(ctx.canvas, "width")),
                 parseInt(Util.getStyleValue(ctx.canvas, "height")));
         }
-        let p1 = ctx.transformedPoint(0, 0);
-        let p2 = ctx.transformedPoint(this.width, this.height);
-        ctx.fillStyle = 'rgb(200, 200, 200)';
-        ctx.fillRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
 
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = 'rgb(200, 200, 200)';
         ctx.fillRect(0, 0, this.width, this.height);
         ctx.restore();
 
@@ -160,51 +157,54 @@ class StageView extends EventTarget {
 
 
             //:::NAME
-            ctx.save();
-            let flipped = false;
-            if (pos.angle > Math.PI / 2 || pos.angle < -Math.PI / 2) {
-                ctx.rotate(Math.PI);
-                ctx.textBaseline = "middle"
-                flipped = true;
-            } else {
-                ctx.textBaseline = "alphabetic baseline"
-            }
-            let size = dancerFontSize;
-            //normal normal 700 1.7em 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
-            ctx.font = `normal normal 700 ${size}px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`;
-            ctx.textAlign = "center";
-            let smaller = false;
-            let width = ctx.measureText(dancer.name).width;
-            if (r / width * 2 < 1 && this.renaming !== dancer && this.hovering !== dancer &&
-                !(this.selected.length === 1 && this.selected.indexOf(dancer) != -1)) {
-                size *= r / width * 2;
+            if (ctx === this.ctx) {
+                ctx.save();
+                let flipped = false;
+                if (pos.angle > Math.PI / 2 || pos.angle < -Math.PI / 2) {
+                    ctx.rotate(Math.PI);
+                    ctx.textBaseline = "middle"
+                    flipped = true;
+                } else {
+                    ctx.textBaseline = "alphabetic baseline"
+                }
+                let size = dancerFontSize;
                 ctx.font = `normal normal 700 ${size}px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`;
-                width = ctx.measureText(dancer.name).width;
-                smaller = true;
-            }
+                ctx.textAlign = "center";
+                let smaller = false;
+                let width = ctx.measureText(dancer.name).width + 6;
+                if (this.renaming !== dancer && this.hovering !== dancer &&
+                    !(this.selected.length === 1 && this.selected.indexOf(dancer) != -1)) {
+                    if (r / width * 2 < 1) {
+                        size *= r / width * 2;
+                        ctx.font = `normal normal 700 ${size}px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`;
+                        width = ctx.measureText(dancer.name).width + 6;
+                    }
+                    smaller = true;
+                }
 
-            let height = size;
-            let offset = flipped ? -height / 2 : -height + height / 8;
-            if (this.renamingStart && this.renaming === dancer) {
-                this.ctx.fillStyle = 'rgba(130, 166, 255, .5)';
-                ctx.fillRect(-width / 2, offset, width, height);
-            } else if (this.renaming === dancer) {
-                this.ctx.fillStyle = 'rgba(200, 186, 160, .5)';
-                ctx.fillRect(-width / 2, offset, width, height);
-            }
+                let height = size;
+                let offset = flipped ? -height / 2 : -height + height / 8;
+                if (this.renamingStart && this.renaming === dancer) {
+                    this.ctx.fillStyle = 'rgba(130, 166, 255, .5)';
+                    ctx.fillRect(-width / 2, offset, width, height);
+                } else if (this.renaming === dancer) {
+                    this.ctx.fillStyle = 'rgba(200, 186, 160, .5)';
+                    ctx.fillRect(-width / 2, offset, width, height);
+                }
 
-            ctx.strokeStyle = 'rgb(0, 0, 0)';
-            if (!smaller) {
-                ctx.strokeText(dancer.name, .5, .5);
-                ctx.strokeText(dancer.name, -.5, .5);
-                ctx.strokeText(dancer.name, .5, -.5);
-                ctx.strokeText(dancer.name, -.5, -.5);
-            } else {
-                ctx.strokeText(dancer.name, 0, 0);
+                ctx.strokeStyle = 'rgb(0, 0, 0)';
+                if (!smaller) {
+                    ctx.strokeText(dancer.name, .5, .5);
+                    ctx.strokeText(dancer.name, -.5, .5);
+                    ctx.strokeText(dancer.name, .5, -.5);
+                    ctx.strokeText(dancer.name, -.5, -.5);
+                } else {
+                    ctx.strokeText(dancer.name, 0, 0);
+                }
+                ctx.fillStyle = 'rgb(255, 255, 255)';
+                ctx.fillText(dancer.name, 0, 0);
+                ctx.restore();
             }
-            ctx.fillStyle = 'rgb(255, 255, 255)';
-            ctx.fillText(dancer.name, 0, 0);
-            ctx.restore();
 
             ctx.restore();
         });
@@ -278,6 +278,7 @@ class StageView extends EventTarget {
         let dancer = { name: "name", positions: pos };
         this.dancers.push(dancer);
         this.selected = [dancer];
+        dom.removeDancer.disabled = false;
         this.renaming = dancer;
         this.renamingStart = true;
         this.draw();
