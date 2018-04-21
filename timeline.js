@@ -13,7 +13,7 @@ class Timeline {
         this.mouse = { dragging: false, slide: null, numSwaps: 0, x: null, startX: null, lastX: null };
     }
 
-    addFormation() {
+    insertFormation() {
         let newSlide = document.createElement("div");
         newSlide.classList.add("formationSlide");
         if (this.curr != -1) {
@@ -95,6 +95,10 @@ class Timeline {
             scrollAnim(30);
         }
         stageView.draw();
+    }
+    addFormation(){
+        this.selectFormation(this.formations.length - 1);
+        this.insertFormation();
     }
     deleteFormation() {
         let del = this.formations.splice(this.curr, 1)[0];

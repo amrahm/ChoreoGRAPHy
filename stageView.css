@@ -43,21 +43,27 @@
     background-repeat: no-repeat;
     background-color: rgb(247, 247, 247);
     border: outset;
-    /* border-radius: 10px; */
-}
-#addDancer:active, #removeDancer:active {
-    border: inset;
-
+    font-size: 100%;
+    text-shadow: 1px 1px 1px white, -1px 1px 1px white,
+                 1px -1px 1px white, -1px -1px 1px white;
 }
 #addDancer {
     margin-bottom: 10px;
     background-image: url("graphics/AddIcon.png");
+}
+#addDancer:active {
+    color: hsl(120, 100%, 33%);
+    border: inset;    
 }
 #removeDancer {
     background-image: url("graphics/RemoveIcon.png");
 }
 #removeDancer:disabled {
     background-image: url("graphics/RemoveIconDisabled.png");
+}
+#removeDancer:active {
+    color: hsl(0, 100%, 32%);
+    border: inset;    
 }
 #addDancer > div , #removeDancer > div { flex: 0 1 40px; }
 

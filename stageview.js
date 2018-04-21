@@ -2,6 +2,7 @@
 //TODO: Undo/Redo
 //TODO: Front view
 //TODO: CTRL/Shift for selecting multiple, del for removing dancer
+//TODO: Some way of setting this.stageWidth in the UI
 
 const faceRotation = false;
 const dancerSize = 20; //radius of dancer, in centimeters
@@ -257,24 +258,40 @@ class StageView extends EventTarget {
     }
 
     addDancer() {
-        let pt = this.ctx.transformedPoint(this.width / 2, this.height / 2);
-        let safe = true;
-        do { //move to non-overlapping location
-            safe = true;
-            this.dancers.forEach(dancer => {
-                let pos = dancer.positions[timeline.curr];
-                if ((pos.x - pt.x) ** 2 + (pos.y - pt.y) ** 2 < (dancerSize * 2) ** 2) {
-                    safe = false;
-                    pt.x += dancerSize * (Math.random() < 0.5 ? -1 : 1);
-                    pt.y += dancerSize * (Math.random() < 0.5 ? -1 : 1);
-                }
-            });
-        } while (!safe);
+        let findSafe = (pt, formation, yOth = 1) => {
+            let safe;
+            do { //move to non-overlapping location
+                safe = true;
+                this.dancers.forEach(dancer => {
+                    let pos = dancer.positions[formation];
+                    if ((pos.x - pt.x) ** 2 + (pos.y - pt.y) ** 2 < (dancerSize * 2) ** 2) {
+                        safe = false;
+                        pt.x += dancerSize * (Math.random() < 0.5 ? -1 : 1);
+                        pt.y += dancerSize * (Math.random() < 0.5 ? -1 : yOth);
+                    }
+                });
+            } while (!safe);
+        };
+
+        let currPt = this.ctx.transformedPoint(this.width / 2, this.height / 2);
+        findSafe(currPt, timeline.curr);
         let pos = [];
+
+        this.ctx.save();
+        this.resetView();
+        let otherPt = null;
         for (let i = 0; i < timeline.formations.length; i++) {
-            pos.push(i == timeline.curr ? { x: pt.x, y: pt.y, angle: 0 } :
-                { x: this.stageWidth / 2, y: -dancerSize * 1.2, angle: 0 });
+            if(i == timeline.curr){
+                pos.push({ x: currPt.x, y: currPt.y, angle: 0 });
+                continue;
+            }
+            if(otherPt == null) //try and keep it the same for all other slides if possible
+                otherPt = this.ctx.transformedPoint(this.width / 2, -dancerSize);
+            findSafe(otherPt, i, 0);
+            pos.push({ x: otherPt.x, y: otherPt.y, angle: 0 });
         }
+        this.ctx.restore();
+
         let dancer = { name: "name", positions: pos };
         this.dancers.push(dancer);
         this.selected = [dancer];
@@ -355,7 +372,8 @@ class StageView extends EventTarget {
     }
     mousemove(mouse) {
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
-        if (this.lastM != null && Math.abs(this.lastM.x - mouseT.x) < 0.01 && Math.abs(this.lastM.y - mouseT.y) < 0.01) 
+        if (this.lastM != null && Math.abs(this.lastM.x - mouseT.x) < 0.01 &&
+            Math.abs(this.lastM.y - mouseT.y) < 0.01)
             return; //For some reason mousemove is being called on mousedown even when no movement???
         this.dragged = true;
         if (this.dragging != null) {

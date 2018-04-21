@@ -25,6 +25,7 @@ Util.events(document, {
         dom.stageViewControls = Util.one("#stageViewControls");
         dom.stageViewControls.style.display = "inline";
         dom.addFormation = Util.one("#addFormation");
+        dom.insertFormation = Util.one("#insertFormation");
         dom.deleteFormation = Util.one("#deleteFormation");
         dom.timelinePaddingLeft = Util.one("#timelinePaddingLeft");
         dom.timelinePaddingRight = Util.one("#timelinePaddingRight");
@@ -39,6 +40,7 @@ Util.events(document, {
         dom.zoomIn.addEventListener("click", () => stageView.zoomAnim(20, 1.3));
         dom.zoomOut.addEventListener("click", () => stageView.zoomAnim(20, -1.3));
         dom.resetView.addEventListener("click", () => stageView.resetView());
+        dom.insertFormation.addEventListener("click", () => timeline.insertFormation());
         dom.addFormation.addEventListener("click", () => timeline.addFormation());
         dom.deleteFormation.addEventListener("click", () => timeline.deleteFormation());
 
@@ -65,8 +67,11 @@ Util.events(document, {
         Util.events(dom.stageViewControls, {
             "mousedown": evt => (evt.preventDefault() && false)
         });
+        Util.events(dom.addFormation, {
+            "mousedown": evt => (evt.preventDefault() && false)
+        });
 
-        timeline.addFormation();
+        timeline.insertFormation();
 
         window.setInterval(() => {
             if (stageView.redrawThumb) {

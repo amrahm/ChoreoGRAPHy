@@ -15,13 +15,13 @@ main {
     align-items: stretch;
     grid-gap: 10px 0px;
     grid-template:
-        [row1-start] "groups . . . header header header header ." 10px [row1-end]
-        [row2-start] "groups . . stageTitle . . . . ." 40px [row2-end]
+        [row1-start] ". . . . . . . . ." 10px [row1-end]
+        [row2-start] "header header . stageTitle . . . . ." 40px [row2-end]
         [row3-start] "groups . canvas canvas canvas . dancerControls dancerControls ." 100px [row3-end]
         [row4-start] "groups . canvas canvas canvas . formationComments formationComments ." auto [row4-end]
         [row5-start] "groups . canvas canvas canvas . formationComments formationComments ." auto [row5-end]
         [row6-start] "stageLegend . canvas canvas canvas . formationComments formationComments ." 100px [row6-end]
-        [row7-start] "timeline timeline timeline timeline timeline timeline timelineControls timelineControls timelineControls" calc(var(--slide-height) + var(--extra)) [row7-end]
+        [row7-start] "timeline timeline timeline timeline timeline . timelineControls timelineControls ." calc(var(--slide-height) + var(--extra)) [row7-end]
         [row8-start] "music music music music music music music music music" 50px [row8-end]
         / 5fr 20px 8fr 8fr 8fr 20px 4fr 1fr 20px;
 }
@@ -37,13 +37,12 @@ main {
 
 .n1 {
     grid-area: header;
-    margin-top: 10px;
     color: var(--color-blue);
+    font-size: calc((11vw) / 7);
     font-family: 'Comfortaa', cursive;
     font-style: italic;
     text-align: center;
-    font-size: 200%;
-    text-align: end;
+    word-wrap: break-word;
 }
 .n2 {
     font-family: 'Julius Sans One', sans-serif;
