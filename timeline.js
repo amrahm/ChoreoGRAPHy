@@ -2,17 +2,22 @@
 
 class Timeline {
     constructor(slideT, slideWidth, slideHeight, slideSpacing, slideSmaller) {
-        this.formations = []; //element format: {name: "name", slide: slide, ctx: ctx}
+        this.formations = []; //ex: {name: "name", slide: slide, ctx: ctx, comment: comment}
         this.curr = -1;
+        this.totalEver = 1; //number of slides that have ever been added
         this.slideT = slideT;
         this.slideWidth = slideWidth;
         this.slideHeight = slideHeight;
         this.slideSpacing = slideSpacing;
         this.slideSmaller = slideSmaller;
-        this.slideSpace = this.slideWidth*this.slideSmaller+this.slideSpacing
+        this.slideSpace = this.slideWidth * this.slideSmaller + this.slideSpacing
         this.mouse = { dragging: false, slide: null, numSwaps: 0, x: null, startX: null, lastX: null };
     }
 
+    addFormation() {
+        this.selectFormation(this.formations.length - 1);
+        this.insertFormation();
+    }
     insertFormation() {
         let newSlide = document.createElement("div");
         newSlide.classList.add("formationSlide");
@@ -33,17 +38,36 @@ class Timeline {
                 this.mouse.startX = evt.clientX;
                 this.mouse.x = evt.clientX;
                 this.mouse.lastX = evt.clientX;
-                return evt.preventDefault() && false;
             },
             "click": evt => this.selectFormation(this.mouse.slide)
+            //TODO: Add keydown event here for things like delete
         });
 
-        let title = document.createElement("p");
-        let name = `Formation ${this.formations.length + 1}`
-        title.innerText = name;
-        newSlide.appendChild(title);
+        let name = document.createElement("p");
+        name.innerText = `Formation ${this.totalEver++}`;
+        name.resizeMe = () => {
+            let size = 30;
+            
+            let width = stageView.measureText(dom.sansFont, size, "normal", name.innerText);
+            size *= this.slideWidth / width;
+            size = Math.max(Math.min(size, 34), 18);
+            if(!name.parentElement.classList.contains("selected"))
+                size *= this.slideSmaller;
+            name.style.setProperty("font-size", `${size}px`);
+            let bott = 8 * size / 30;
+            name.style.setProperty("padding-bottom", `${bott}px`);
+            width = stageView.measureText(dom.sansFont, size, "normal", name.innerText);
+            if (width > 1.98 * this.slideWidth){
+                name.style.setProperty("line-height", `${20}px`);
+                name.style.setProperty("padding-bottom", `${0}px`);
+            }else{
+                name.style.setProperty("line-height", `${30}px`);
+            }
+        };
+        newSlide.appendChild(name);
 
         let img = document.createElement("canvas");
+        img.tabIndex = 1;
         newSlide.appendChild(img);
         img.setAttribute("width", parseInt(Util.getStyleValue(img, "width"))); //resize good
         img.setAttribute("height", parseInt(Util.getStyleValue(img, "height")));
@@ -52,7 +76,7 @@ class Timeline {
         stageView.draw(ctx, true);
 
         let insert = this.curr + 1;
-        this.formations.splice(insert, 0, { name: name, slide: newSlide, ctx: ctx });
+        this.formations.splice(insert, 0, { name: name, slide: newSlide, ctx: ctx, comment: "" });
         let positions = {};
         stageView.dancers.forEach(dancer => {
             dancer.positions.splice(insert, 0, Object.assign({}, dancer.positions[this.curr]));
@@ -70,11 +94,20 @@ class Timeline {
             dom.root.style.setProperty("--down", "4px");
         }
     }
-    selectFormation(i = this.curr) {
+    selectFormation(i, deleting = false) {
         let formation = this.formations[i];
-        if (this.curr !== -1) this.formations[this.curr].slide.classList.remove("selected");
+        if (this.curr !== -1) { //-1 is before first slide added
+            this.formations[this.curr].slide.classList.remove("selected");
+            this.formations[this.curr].name.resizeMe();
+            if (!deleting)
+                this.formations[this.curr].comment = dom.formationCommentsBox.value;
+        }
         this.curr = i;
         formation.slide.classList.add("selected");
+        formation.name.resizeMe();
+        dom.formationCommentsBox.value = formation.comment;
+        dom.formationTitle.value = formation.name.innerText;
+        formationTitleWidth();
         this.scrollStart = dom.timeline.scrollLeft;
         this.scrollTarget = null;
         let scrollAnim = (frames, currFrame = 0) => {
@@ -96,10 +129,6 @@ class Timeline {
         }
         stageView.draw();
     }
-    addFormation(){
-        this.selectFormation(this.formations.length - 1);
-        this.insertFormation();
-    }
     deleteFormation() {
         let del = this.formations.splice(this.curr, 1)[0];
         stageView.dancers.forEach(dancer => {
@@ -109,7 +138,7 @@ class Timeline {
         this.resetOrder();
         del.slide.style.setProperty("order", this.curr * 2 - 1);
         this.curr = this.curr === 0 ? 0 : this.curr - 1;
-        this.selectFormation();
+        this.selectFormation(this.curr, true);
         del.slide.classList.remove("selected");
         del.slide.style.setProperty("z-index", 0);
         del.slide.classList.add("removing");
@@ -120,11 +149,12 @@ class Timeline {
             dom.root.style.setProperty("--down", "12px");
         }
     }
+    /** Sets the 'order' css property for all slides based on index in this.formations */
     resetOrder() {
         for (let i = 0; i < this.formations.length; i++) {
             let slide = this.formations[i].slide;
             slide.style.setProperty("order", i * 2);
-            if(i === this.formations.length - 1) slide.classList.add("last");
+            if (i === this.formations.length - 1) slide.classList.add("last");
             else slide.classList.remove("last");
         }
     }

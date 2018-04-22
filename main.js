@@ -8,6 +8,7 @@ Util.events(document, {
     //runs at the end of start-up when the DOM is ready
     "DOMContentLoaded": () => {
         dom.root = Util.one("html");
+        dom.sansFont = Util.getStyleValue(dom.root, "--sans-font");
         dom.stageDrawing = Util.one("#stageDrawing");
         dom.timeline = Util.one("#timeline");
         timeline = new Timeline(parseFloat(Util.getStyleValue(dom.root, "--slide-t")),
@@ -29,7 +30,8 @@ Util.events(document, {
         dom.deleteFormation = Util.one("#deleteFormation");
         dom.timelinePaddingLeft = Util.one("#timelinePaddingLeft");
         dom.timelinePaddingRight = Util.one("#timelinePaddingRight");
-
+        dom.formationCommentsBox = Util.one("#formationCommentsBox");
+        dom.formationTitle = Util.one("#formationTitle");
 
 
         stageView.ctx = getTrackedContext(dom.stageView.getContext('2d', { alpha: false }));
@@ -43,32 +45,34 @@ Util.events(document, {
         dom.insertFormation.addEventListener("click", () => timeline.insertFormation());
         dom.addFormation.addEventListener("click", () => timeline.addFormation());
         dom.deleteFormation.addEventListener("click", () => timeline.deleteFormation());
+        dom.formationTitle.addEventListener("keyup", () => {
+            timeline.formations[timeline.curr].name.innerText = dom.formationTitle.value;
+            timeline.formations[timeline.curr].name.resizeMe();
+            formationTitleWidth();
+        });
 
         stageView.respondCanvas(true);
         window.onresize = () => stageView.respondCanvas();
         Util.events(dom.stageView, {
             "mousedown": evt => {
                 stageView.mousedown(getCanvasCoords(evt), evt.buttons);
-                return evt.preventDefault() && false;
             },
             "click": evt => {
                 stageView.mouseclick(getCanvasCoords(evt));
-                return evt.preventDefault() && false;
             },
             "dblclick": evt => {
                 stageView.dblclick(getCanvasCoords(evt));
-                return evt.preventDefault() && false;
             },
             "mousewheel": evt => {
                 stageView.mousewheel(evt, getCanvasCoords(evt));
                 return evt.preventDefault() && false;
+            },
+            "keypress": evt => {
+                stageView.keypress(evt);
+            },
+            "keydown": evt => {
+                stageView.keydown(evt);
             }
-        });
-        Util.events(dom.stageViewControls, {
-            "mousedown": evt => (evt.preventDefault() && false)
-        });
-        Util.events(dom.addFormation, {
-            "mousedown": evt => (evt.preventDefault() && false)
         });
 
         timeline.insertFormation();
@@ -87,9 +91,7 @@ Util.events(document, {
             return evt.preventDefault() && false;
         } else {
             stageView.mousemove(getCanvasCoords(evt));
-            if (stageView.isDragging()) {
-                return evt.preventDefault() && false;
-            }
+            if (stageView.isDragging()) return evt.preventDefault() && false;
         }
     },
     "mouseup": evt => {
@@ -104,18 +106,17 @@ Util.events(document, {
         stageView.mouseenter(evt.buttons);
         if (wasDragging) return evt.preventDefault() && false;
     },
-    "keypress": evt => {
-        stageView.keypress(evt);
-        return evt.preventDefault() && false;
-    },
-    "keydown": evt => {
-        stageView.keydown(evt);
-    },
-    "keyup": evt => {
-        return evt.preventDefault() && false; //prevent space/enter from adding more dancers
+    "mousedown": evt => {
+        stageView.mousedownOutside();
     }
 });
 function getCanvasCoords(evt) {
     let topLeft = Util.offset(dom.stageView);
     return { x: evt.clientX - topLeft.left, y: evt.clientY - topLeft.top };
+}
+
+function formationTitleWidth() {
+    let width = stageView.measureText(dom.sansFont,
+        Util.getStyleValue(dom.formationTitle, "font-size"), "normal", dom.formationTitle.value);
+    dom.formationTitle.style.setProperty("width", `${width + 40}px`);
 }

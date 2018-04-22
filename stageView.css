@@ -43,7 +43,8 @@
     background-repeat: no-repeat;
     background-color: rgb(247, 247, 247);
     border: outset;
-    font-size: 100%;
+    font: 100% var(--sans-font);
+    padding: 0;
     text-shadow: 1px 1px 1px white, -1px 1px 1px white,
                  1px -1px 1px white, -1px -1px 1px white;
 }
@@ -65,7 +66,7 @@
     color: hsl(0, 100%, 32%);
     border: inset;    
 }
-#addDancer > div , #removeDancer > div { flex: 0 1 40px; }
+#addDancer > div , #removeDancer > div { flex: 0 1 25%; }
 
 
 #stageLegend {

@@ -156,7 +156,6 @@ class StageView extends EventTarget {
                 dancer.rotateIcon.bezierCurveTo(-r * .4, r * .55, r * .4, r * .55, r, 0);
             }
 
-
             //:::NAME
             if (ctx === this.ctx) {
                 ctx.save();
@@ -169,7 +168,7 @@ class StageView extends EventTarget {
                     ctx.textBaseline = "alphabetic baseline"
                 }
                 let size = dancerFontSize;
-                ctx.font = `normal normal 700 ${size}px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`;
+                ctx.font = `normal normal 700 ${size}px ${dom.sansFont}`;
                 ctx.textAlign = "center";
                 let smaller = false;
                 let width = ctx.measureText(dancer.name).width + 6;
@@ -177,7 +176,7 @@ class StageView extends EventTarget {
                     !(this.selected.length === 1 && this.selected.indexOf(dancer) != -1)) {
                     if (r / width * 2 < 1) {
                         size *= r / width * 2;
-                        ctx.font = `normal normal 700 ${size}px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`;
+                        ctx.font = `normal normal 700 ${size}px ${dom.sansFont}`;
                         width = ctx.measureText(dancer.name).width + 6;
                     }
                     smaller = true;
@@ -302,6 +301,7 @@ class StageView extends EventTarget {
         for (let i = 0; i < timeline.formations.length; i++) {
             this.draw(timeline.formations[i].ctx, false, i);
         }
+        dom.stageView.focus();
     }
     removeDancer() {
         //TODO: should have a dialogue box to confirm that this deletes this dancer from all formations
@@ -542,6 +542,12 @@ class StageView extends EventTarget {
             return evt.preventDefault() && false;
         }
     }
+    mousedownOutside(){
+        if(this.renaming === null) return;
+        this.renaming = null;
+        this.renamingStart = false;
+        this.draw();
+    }
 
     mousewheel(evt, mouse) {
         let delta = evt.wheelDelta ? evt.wheelDelta / 40 : (evt.detail ? -evt.detail : 0);
@@ -581,5 +587,11 @@ class StageView extends EventTarget {
             ctx.translate(-center.x, -center.y);
         }
         this.draw();
+    }
+
+    /** Uses this canvas to measure some text for you thank you very much */
+    measureText(fontFamily, fontSize, fontWeight, text){
+        this.ctx.font = `normal normal ${fontWeight} ${fontSize} ${fontFamily}`;
+        return this.ctx.measureText(text).width;
     }
 }

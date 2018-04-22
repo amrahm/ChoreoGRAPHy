@@ -40,7 +40,7 @@
         </div>
         <div class="n1">Choreo<span class="n2">GRAPH</span>y&thinsp;<span class="n3">™</span></div>
         <div id="groups">Groups</div>
-        <div id="stageTitle">Stage Title</div>
+        <input type="text" id="formationTitle"></div>
         <div id="dancerControls">
             <button id="addDancer">
                 <div></div> Add Dancer
@@ -49,7 +49,10 @@
                 <div></div> Remove Dancer
             </button>
         </div>
-        <div id="formationComments">Formation Comments</div>
+        <div id="formationComments">
+            <p>Formation Comments</p>
+            <textarea id="formationCommentsBox"></textarea>
+        </div>
         <div id="timeline" oncontextmenu="return false;">
             <div id="timelinePaddingLeft"></div>
             <button id="addFormation"><img src="graphics/AddFormationIcon.png" alt="Add Formation"></button>
@@ -64,7 +67,7 @@
                 </button>
             </div>
         <div id="music">music</div>
-        <canvas id="stageView" oncontextmenu="return false;"></canvas>
+        <canvas id="stageView" oncontextmenu="return false;" tabindex="1"></canvas>
         <div id="stageViewControls" oncontextmenu="return false;">
             <input id="zoomIn" type="image" src="graphics/PlusIcon.png" alt="Zoom In">
             <input id="zoomOut" type="image" src="graphics/MinusIcon.png" alt="Zoom Out">
