@@ -30,8 +30,8 @@ main {
 
 #stageDrawing {
     /* TODO: Remove display line if we want to start off with stage drawing*/
-    grid-area: 1 / 1 / 9 / 10;
-    background: var(--color-light-gray);
+    grid-area: 1 / 1 / 8 / 9;
+    background: rgb(220, 220, 220);
     z-index: 100;
 }
 
