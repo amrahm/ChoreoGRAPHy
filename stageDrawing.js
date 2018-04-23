@@ -1,169 +1,110 @@
 //TODO: We need a way to get back to this state
 /** Implements drawing a custom stage */
+const boxSize = 10;
+const distThreshold = 30; //num pixels close that are considered close enough to close
 class StageDrawing extends EventTarget {
-
-    // constructor
     constructor() {
         super();
+        this.ctx = null; //initialized in main.js
+        this.width = null; //initialized in respondCanvas()
+        this.height = null; //^
         this.stage = new Path2D();
-        this.colors = {
-            "preview": "#0c8",
-            "stroke": "#363636",
-            "anchor": "#0cc"
-        };
+        this.lastPoint = null;
+        this.numPoints = 0;
+        this.md = false;
+        this.firstPoint = null;
+        this.closed = false;
+        this.bounds = { minX: 100000000, maxX: 0, minY: 1000000000000, maxY: 0 };
+        this.points = [];
     }
 
-    extend(){
-    
-        if (arguments.length < 2) return;
-        var extended = arguments[0];
-        for (var _x = 1, _xx = arguments.length; _x < _xx; _x++) {
-          var base = arguments[_x];
-          for (var key in base) {
-            extended[key] = base[key];
-          }
+    /** Respond to window resize so that drawings don't get distorted. */
+    respondCanvas() {
+        this.width = parseInt(Util.getStyleValue(dom.drawingCanvas, "width"));
+        this.height = parseInt(Util.getStyleValue(dom.drawingCanvas, "height"));
+        dom.drawingCanvas.setAttribute("width", this.width);
+        dom.drawingCanvas.setAttribute("height", this.height);
+        this.draw();
+    }
+
+    draw(ctx = this.ctx) {
+        ctx.fillStyle = 'rgb(255, 255, 255)';
+        ctx.fillRect(0, 0, this.width, this.height);
+
+        if (this.closed) {
+            ctx.fillStyle = 'rgb(255, 250, 245)';
+            ctx.fill(this.stage);
+        } else if (this.numPoints > 0) {
+            ctx.strokeStyle = 'rgb(0, 0, 0)';
+            ctx.strokeRect(this.lastPoint.x - boxSize / 2, this.lastPoint.y - boxSize / 2, boxSize, boxSize);
         }
-        return extended;
-      };
-
-    Line(parent, x1, y1, x2, y2) {
-
-        var id = parent.newId();
-        this.__id = id;
-        this.id = parent.prefix + "-" + id;
-        this.anchorWidth = 5;
-        this.type = "line";
-        this.parent = parent;
-        var canvas = parent.canvas,
-            ctx = parent.ctx;
-
-        this.origin = {};
-        this.target = {};
-
-
-        this.origin.x = x1 || 0;
-        this.origin.y = y1 || 0;
-
-        this.target.x = x2 || x1;
-        this.target.y = y2 || y1;
-
-        this.hidden = false;
-
-        this.anchor = function (x, y) {
-
-            var n = this.anchorWidth / 2;
-            ctx.globalCompositeOperation = "lighter";
-            ctx.strokeStyle = this.parent.colors.anchor;
-            ctx.strokeRect(x - n, y - n, n * 2, n * 2);
-            ctx.globalCompositeOperation = "source-over";
-        };
-
-        this.drawOrigin = function () {
-
-            this.anchor(this.origin.x, this.origin.y);
-        };
-
-        this.drawTarget = function () {
-
-            this.anchor(this.target.x, this.target.y);
-        };
-
-        this.to = function (x, y) {
-
-            // allow passing in of single parameters
-            this.target.x = x !== undefined ? x : this.target.x;
-            this.target.y = y !== undefined ? y : this.target.y;
-        };
+        ctx.strokeStyle = 'rgb(0, 0, 0)';
+        ctx.stroke(this.stage);
     }
 
-
-    render(c) {
-
-            // c passed in for previewing.
-            if (c === undefined && this.hidden) return;
-
-            ctx.strokeStyle = c || this.parent.colors.stroke;
-
-            ctx.beginPath();
-            var p = new Path2D();
-            p.moveTo(this.origin.x, this.origin.y);
-            p.lineTo(this.target.x, this.target.y);
-            p.stroke();
-            this.path = p;
-            console.log(p);
+    mousedown(mouse) {
+        if (this.closed) return;
+        this.md = true;
+        this.numPoints++;
+        this.lastPoint = mouse;
+        this.draw();
     }
-
-    preview () {
-
-            ctx.save();
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            this.parent.render();
-            this.drawOrigin();
-            this.render(this.parent.colors.preview);
-            this.drawTarget();
-            ctx.restore();
+    mousemove(mouse) {
+        if (!this.md) return;
+        this.lastPoint = mouse;
+        this.draw();
     }
-
-
-    callEvent (e){
-      
-      if (!this.events[e.type]) return;
-      
-      e.preventDefault();
-      this.events[e.type].call(this, e);
-        
+    mouseup() {
+        if (!this.md) return;
+        this.md = false;
+        if (this.numPoints === 1) {
+            this.stage.moveTo(this.lastPoint.x, this.lastPoint.y);
+            this.firstPoint = this.lastPoint;
+            this.checkBounds(this.lastPoint);
+            this.points.push(this.lastPoint);
+        } else if (this.numPoints > 3 && Math.abs(this.lastPoint.x - this.firstPoint.x) ** 2 +
+            Math.abs(this.lastPoint.y - this.firstPoint.y) ** 2 < distThreshold ** 2) {
+            this.closed = true;
+            this.stage.closePath();
+        } else {
+            this.stage.lineTo(this.lastPoint.x, this.lastPoint.y);
+            this.checkBounds(this.lastPoint);
+            this.points.push(this.lastPoint);
+        }
+        this.draw();
     }
-    
-    // currentLine;
-    
-
-    // canvas = canvasEl;
-    // prefix = this.prefix = $(canvasEl).attr("id");
-    // id = 0;
-    
-    // //canvas.width = maximize ? window.innerWidth : canvasEl.width;
-    // //canvas.height = maximize ? window.innerHeight : canvasEl.height;
-    
-    // ctx = canvasEl.getContext("2d");
-    
-    // colors = COLORS;
-    
-    // // the array full of vectors
-    // children = [];
-    
-    push (item){
-      
-      this.children.push(item);
-      this.addToVectorlist(item);
-      this.render();
-    };
-    
-    newId(){
-      
-      id++;
-      return id-1;
-    };
-    
-   pop (){
-       // todo
-      var l = this.children.length;
-      if (l === 0) return;
-      var c = this.children[l-1];
-      this.removeFromVectorlist(c);
-      this.children.length = l - 1;
-      this.render();
-    }; 
-    
-    render (){
-      
-      var c = this.children;
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        c.forEach(function(val, i, a){
-          val.render();
-        });
+    dblclick() {
+        if (this.closed || this.numPoints <= 3) return;
+        this.closed = true;
+        this.stage.closePath();
+        this.draw();
     }
 
     doneDrawing() {
         dom.stageDrawing.style.display = "none";
+        let bounds = { maxX: this.bounds.maxX - this.bounds.minX, maxY: this.bounds.maxY - this.bounds.minY }
+        let shiftX = -this.bounds.minX;
+        let shiftY = -this.bounds.minY;
+        let stage = new Path2D();
+        this.points.forEach(point => {
+            stage.lineTo(point.x + shiftX, point.y + shiftY);
+        });
+        stage.closePath();
+        stageView.setStage(stage, bounds, 500);
+        timeline.insertFormation();
+    }
+
+
+
+    checkBounds(point) {
+        if (point.x < this.bounds.minX)
+            this.bounds.minX = point.x;
+        else if (point.x > this.bounds.maxX)
+            this.bounds.maxX = point.x;
+
+        if (point.y < this.bounds.minY)
+            this.bounds.minY = point.y;
+        else if (point.y > this.bounds.maxY)
+            this.bounds.maxY = point.y;
     }
 }

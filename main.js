@@ -10,6 +10,7 @@ Util.events(document, {
         dom.root = Util.one("html");
         dom.sansFont = Util.getStyleValue(dom.root, "--sans-font");
         dom.stageDrawing = Util.one("#stageDrawing");
+        dom.drawingCanvas = Util.one("#drawingCanvas");
         dom.timeline = Util.one("#timeline");
         timeline = new Timeline(parseFloat(Util.getStyleValue(dom.root, "--slide-t")),
             parseFloat(Util.getStyleValue(dom.root, "--slide-width")),
@@ -34,6 +35,7 @@ Util.events(document, {
         dom.formationTitle = Util.one("#formationTitle");
 
 
+        stageDrawing.ctx = dom.drawingCanvas.getContext('2d', { alpha: false });
         stageView.ctx = getTrackedContext(dom.stageView.getContext('2d', { alpha: false }));
 
         dom.confirmStage.addEventListener("click", () => stageDrawing.doneDrawing());
@@ -51,20 +53,35 @@ Util.events(document, {
             formationTitleWidth();
         });
 
+        stageDrawing.respondCanvas();
         stageView.respondCanvas(true);
-        window.onresize = () => stageView.respondCanvas();
-        Util.events(dom.stageView, {
+        window.onresize = () => onResize();
+        Util.events(dom.drawingCanvas, {
             "mousedown": evt => {
-                stageView.mousedown(getCanvasCoords(evt), evt.buttons);
+                stageDrawing.mousedown(getCanvasCoords(dom.drawingCanvas, evt), evt.buttons);
             },
-            "click": evt => {
-                stageView.mouseclick(getCanvasCoords(evt));
+            "mousemove": evt => {
+                stageDrawing.mousemove(getCanvasCoords(dom.drawingCanvas, evt));
+            },
+            "mouseup": evt => {
+                stageDrawing.mouseup(getCanvasCoords(dom.drawingCanvas, evt));
             },
             "dblclick": evt => {
-                stageView.dblclick(getCanvasCoords(evt));
+                stageDrawing.dblclick();
+            }
+        });
+        Util.events(dom.stageView, {
+            "mousedown": evt => {
+                stageView.mousedown(getCanvasCoords(dom.stageView, evt), evt.buttons);
+            },
+            "click": evt => {
+                stageView.click(getCanvasCoords(dom.stageView, evt));
+            },
+            "dblclick": evt => {
+                stageView.dblclick(getCanvasCoords(dom.stageView, evt));
             },
             "mousewheel": evt => {
-                stageView.mousewheel(evt, getCanvasCoords(evt));
+                stageView.mousewheel(evt, getCanvasCoords(dom.stageView, evt));
                 return evt.preventDefault() && false;
             },
             "keypress": evt => {
@@ -75,10 +92,9 @@ Util.events(document, {
             }
         });
 
-        timeline.insertFormation();
 
         window.setInterval(() => {
-            if (stageView.redrawThumb) {
+            if (stageView.redrawThumb && timeline.formations.length !== 0) {
                 stageView.draw(timeline.formations[timeline.curr].ctx);
                 stageView.redrawThumb = false;
             }
@@ -90,7 +106,7 @@ Util.events(document, {
             timeline.dragSlide(evt);
             return evt.preventDefault() && false;
         } else {
-            stageView.mousemove(getCanvasCoords(evt));
+            stageView.mousemove(getCanvasCoords(dom.stageView, evt));
             if (stageView.isDragging()) return evt.preventDefault() && false;
         }
     },
@@ -110,8 +126,8 @@ Util.events(document, {
         stageView.mousedownOutside();
     }
 });
-function getCanvasCoords(evt) {
-    let topLeft = Util.offset(dom.stageView);
+function getCanvasCoords(canvas, evt) {
+    let topLeft = Util.offset(canvas);
     return { x: evt.clientX - topLeft.left, y: evt.clientY - topLeft.top };
 }
 
@@ -119,4 +135,9 @@ function formationTitleWidth() {
     let width = stageView.measureText(dom.sansFont,
         Util.getStyleValue(dom.formationTitle, "font-size"), "normal", dom.formationTitle.value);
     dom.formationTitle.style.setProperty("width", `${width + 40}px`);
+}
+
+function onResize(){
+    stageView.respondCanvas();
+    stageDrawing.respondCanvas();
 }

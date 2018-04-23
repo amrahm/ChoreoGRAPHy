@@ -34,18 +34,30 @@ class StageView extends EventTarget {
         this.stageWidth = 0; //estimation of real stage width, in centimeters
 
         //---TESTING---
-        let sW = 100;
-        let sH = 70;
-        this.stage = new Path2D();
-        this.stage.moveTo(0, 0);
-        this.stage.lineTo(0, sH * 2 / 3);
-        this.stage.lineTo(sW / 3, sH);
-        this.stage.lineTo(sW * 2 / 3, sH);
-        this.stage.lineTo(sW, sH * 2 / 3);
-        this.stage.lineTo(sW, 0);
-        this.stage.closePath();
-        this.stageBounds = { maxX: sW, maxY: sH };
-        this.stageWidth = 500;
+        // let sW = 100;
+        // let sH = 70;
+        // this.stage = new Path2D();
+        // this.stage.moveTo(0, 0);
+        // this.stage.lineTo(0, sH * 2 / 3);
+        // this.stage.lineTo(sW / 3, sH);
+        // this.stage.lineTo(sW * 2 / 3, sH);
+        // this.stage.lineTo(sW, sH * 2 / 3);
+        // this.stage.lineTo(sW, 0);
+        // this.stage.closePath();
+        // this.stageBounds = { maxX: sW, maxY: sH };
+        // this.stageWidth = 500;
+    }
+
+    /** Set the stage.
+     * @param {*} stage a Path2D() Object
+     * @param {*} stageBounds object of the form { maxX: 0, maxY: 0 }
+     * @param {*} stageWidth estimation of real stage width, in centimeters */
+    setStage(stage, stageBounds, stageWidth){
+        this.stage = stage;
+        this.stageBounds = stageBounds;
+        this.stageWidth = stageWidth;
+        this.resetView();
+        this.draw();
     }
 
     /** Respond to window resize so that drawings don't get distorted. */
@@ -78,7 +90,7 @@ class StageView extends EventTarget {
         }
 
         ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.setTransform();
         ctx.fillStyle = 'rgb(200, 200, 200)';
         ctx.fillRect(0, 0, this.width, this.height);
         ctx.restore();
@@ -458,7 +470,7 @@ class StageView extends EventTarget {
         if (!this.isDragging()) return;
         if (buttons != 1) this.mouseup();
     }
-    mouseclick(mouse) {
+    click(mouse) {
         if (this.dragged) return; //clicked, but then dragged
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
         this.selected = [];
