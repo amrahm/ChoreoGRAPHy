@@ -27,9 +27,9 @@ main {
 }
 
 
+
 #stageDrawing {
     /* TODO: Remove display line if we want to start off with stage drawing*/
-    display: none;
     grid-area: 1 / 1 / 9 / 10;
     background: var(--color-light-gray);
     z-index: 100;
@@ -61,9 +61,27 @@ main {
 }
 #stageTitle {
     grid-area: stageTitle;
-    border: dashed 1px black;
     border-radius: 10px;
     text-align: center;
+    align-content: center;
+}
+#titleField {
+    width: 90%;
+    height: 90%;
+    border: solid 1px gray;
+    border-radius: 10px;
+    text-align: center;
+    font-size: large;
+    color: gray;
+}
+#commentField {
+    width: 90%;
+    height: 90%;
+    border: solid 1px gray;
+    border-radius: 10px;
+    text-align: center;
+    font-size: small;
+    color: gray;
 }
 #stageView {
     grid-area: canvas;
@@ -80,7 +98,6 @@ main {
 #formationComments {
     grid-area: formationComments;
     margin-top: 20px;
-    border: dashed 1px black;
     border-radius: 10px;
     text-align: center;
 }
