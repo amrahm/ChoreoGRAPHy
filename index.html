@@ -36,7 +36,22 @@
 <body>
     <main>
         <div id="stageDrawing">
-            <button id="confirmStage">confirm</button>
+            <center>
+                <div>
+                    <h1 id="drawingInstruction">draw your stage shape below</h1>
+                </div>
+            </center>
+            <div>
+                <canvas id="drawingCanvas"></canvas>
+            </div>
+            <center>
+                <div>
+                    <button id="confirmStage" onclick="doneDrawing()">done</button>
+                </div>
+            </center>
+            <div class="vectorlist-wrapper">
+                <ol class="vectorlist" id="wow-vectorlist">&nbsp;</ol>    
+            </div>
         </div>
         <div class="n1">Choreo<span class="n2">GRAPH</span>y&thinsp;<span class="n3">™</span></div>
         <div id="groups">Groups</div>
@@ -73,6 +88,7 @@
             <input id="zoomOut" type="image" src="graphics/MinusIcon.png" alt="Zoom Out">
             <input id="resetView" type="image" src="graphics/ResetIcon.png" alt="Reset View">
         </div>
+
         <ul id="stageLegend">
             <li>Click/drag to select dancers</li>
             <!-- <li>Click face to rotate dancer</li> -->
