@@ -462,8 +462,7 @@ class StageView extends EventTarget {
         if (this.dragged) return; //clicked, but then dragged
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
         this.selected = [];
-        //forwards so that if overlapped, non-selected will be selected
-        for (let i = 0; i < this.dancers.length; i++) {
+        for (let i = this.dancers.length - 1; i >= 0; i--) {
             let dancer = this.dancers[i];
             let pos = dancer.positions[timeline.curr];
             if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerSize) ** 2) {
