@@ -1,7 +1,8 @@
 @import url('https://fonts.googleapis.com/css?family=Comfortaa|Julius+Sans+One');
 :root { /* Global variables */
 	--background-main: hsl(0, 0%, 100%);
-	--color-blue: hsl(210, 80%, 45%);
+    --color-blue: hsl(210, 80%, 45%);
+    --sans-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 html, body, main {
@@ -15,15 +16,14 @@ main {
     align-items: stretch;
     grid-gap: 10px 0px;
     grid-template:
-        [row1-start] "groups . . . header header header header ." 10px [row1-end]
-        [row2-start] "groups . . stageTitle . . . . ." 40px [row2-end]
-        [row3-start] "groups . canvas canvas canvas . dancerControls dancerControls ." 100px [row3-end]
-        [row4-start] "groups . canvas canvas canvas . formationComments formationComments ." auto [row4-end]
-        [row5-start] "groups . canvas canvas canvas . formationComments formationComments ." auto [row5-end]
-        [row6-start] "stageLegend . canvas canvas canvas . formationComments formationComments ." 100px [row6-end]
-        [row7-start] "timeline timeline timeline timeline timeline timeline timelineControls timelineControls timelineControls" calc(var(--slide-height) + var(--extra)) [row7-end]
-        [row8-start] "music music music music music music music music music" 50px [row8-end]
-        / 5fr 20px 8fr 8fr 8fr 20px 4fr 1fr 20px;
+        [row1-start] ". . . . . . . ." 10px [row1-end]
+        [row2-start] "header header formationTitle formationTitle formationTitle . . ." 2.5em [row2-end]
+        [row3-start] "groups . canvas canvas canvas . dancerControls ." 100px [row3-end]
+        [row4-start] "groups . canvas canvas canvas . formationComments ." auto [row4-end]
+        [row5-start] "stageLegend . canvas canvas canvas . formationComments ." 100px [row5-end]
+        [row6-start] "timeline timeline timeline timeline timeline . timelineControls ." calc(var(--slide-height) + var(--extra)) [row6-end]
+        [row7-start] "music music music music music music music music" 50px [row7-end]
+        / 5fr 20px 8fr 8fr 8fr 20px 5fr 20px;
 }
 
 
@@ -37,13 +37,12 @@ main {
 
 .n1 {
     grid-area: header;
-    margin-top: 10px;
     color: var(--color-blue);
+    font-size: calc((11vw) / 7);
     font-family: 'Comfortaa', cursive;
     font-style: italic;
     text-align: center;
-    font-size: 200%;
-    text-align: end;
+    word-wrap: break-word;
 }
 .n2 {
     font-family: 'Julius Sans One', sans-serif;
@@ -83,6 +82,14 @@ main {
     font-size: small;
     color: gray;
 }
+#formationTitle {
+    grid-area: formationTitle;
+    text-align: center;
+    justify-self: center;
+    min-width: 130px;
+    font-size: 2.2em;
+    width: 150px;
+}
 #stageView {
     grid-area: canvas;
     justify-self: stretch;
@@ -97,9 +104,22 @@ main {
 #stageLegend { grid-area: stageLegend; }
 #formationComments {
     grid-area: formationComments;
-    margin-top: 20px;
-    border-radius: 10px;
+    margin-top: 10px;
+    /* border: dashed 1px black; */
+    display: flex;
+    flex-direction: column;
+}
+#formationComments > p {
     text-align: center;
+    font: 1.2em var(--sans-font);
+    margin: 0;
+}
+#formationCommentsBox {
+    /* grid-area: formationCommentsBox; */
+    flex: 1 1 auto;
+    resize: none;
+    width: calc(100% - 6px);
+    font: 1em var(--sans-font);
 }
 #music {
     grid-area: music;

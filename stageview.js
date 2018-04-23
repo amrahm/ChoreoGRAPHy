@@ -2,6 +2,7 @@
 //TODO: Undo/Redo
 //TODO: Front view
 //TODO: CTRL/Shift for selecting multiple, del for removing dancer
+//TODO: Some way of setting this.stageWidth in the UI
 
 const faceRotation = false;
 const dancerSize = 20; //radius of dancer, in centimeters
@@ -155,7 +156,6 @@ class StageView extends EventTarget {
                 dancer.rotateIcon.bezierCurveTo(-r * .4, r * .55, r * .4, r * .55, r, 0);
             }
 
-
             //:::NAME
             if (ctx === this.ctx) {
                 ctx.save();
@@ -168,7 +168,7 @@ class StageView extends EventTarget {
                     ctx.textBaseline = "alphabetic baseline"
                 }
                 let size = dancerFontSize;
-                ctx.font = `normal normal 700 ${size}px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`;
+                ctx.font = `normal normal 700 ${size}px ${dom.sansFont}`;
                 ctx.textAlign = "center";
                 let smaller = false;
                 let width = ctx.measureText(dancer.name).width + 6;
@@ -176,7 +176,7 @@ class StageView extends EventTarget {
                     !(this.selected.length === 1 && this.selected.indexOf(dancer) != -1)) {
                     if (r / width * 2 < 1) {
                         size *= r / width * 2;
-                        ctx.font = `normal normal 700 ${size}px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`;
+                        ctx.font = `normal normal 700 ${size}px ${dom.sansFont}`;
                         width = ctx.measureText(dancer.name).width + 6;
                     }
                     smaller = true;
@@ -257,24 +257,40 @@ class StageView extends EventTarget {
     }
 
     addDancer() {
-        let pt = this.ctx.transformedPoint(this.width / 2, this.height / 2);
-        let safe = true;
-        do { //move to non-overlapping location
-            safe = true;
-            this.dancers.forEach(dancer => {
-                let pos = dancer.positions[timeline.curr];
-                if ((pos.x - pt.x) ** 2 + (pos.y - pt.y) ** 2 < (dancerSize * 2) ** 2) {
-                    safe = false;
-                    pt.x += dancerSize * (Math.random() < 0.5 ? -1 : 1);
-                    pt.y += dancerSize * (Math.random() < 0.5 ? -1 : 1);
-                }
-            });
-        } while (!safe);
+        let findSafe = (pt, formation, yOth = 1) => {
+            let safe;
+            do { //move to non-overlapping location
+                safe = true;
+                this.dancers.forEach(dancer => {
+                    let pos = dancer.positions[formation];
+                    if ((pos.x - pt.x) ** 2 + (pos.y - pt.y) ** 2 < (dancerSize * 2) ** 2) {
+                        safe = false;
+                        pt.x += dancerSize * (Math.random() < 0.5 ? -1 : 1);
+                        pt.y += dancerSize * (Math.random() < 0.5 ? -1 : yOth);
+                    }
+                });
+            } while (!safe);
+        };
+
+        let currPt = this.ctx.transformedPoint(this.width / 2, this.height / 2);
+        findSafe(currPt, timeline.curr);
         let pos = [];
+
+        this.ctx.save();
+        this.resetView();
+        let otherPt = null;
         for (let i = 0; i < timeline.formations.length; i++) {
-            pos.push(i == timeline.curr ? { x: pt.x, y: pt.y, angle: 0 } :
-                { x: this.stageWidth / 2, y: -dancerSize * 1.2, angle: 0 });
+            if(i == timeline.curr){
+                pos.push({ x: currPt.x, y: currPt.y, angle: 0 });
+                continue;
+            }
+            if(otherPt == null) //try and keep it the same for all other slides if possible
+                otherPt = this.ctx.transformedPoint(this.width / 2, -dancerSize);
+            findSafe(otherPt, i, 0);
+            pos.push({ x: otherPt.x, y: otherPt.y, angle: 0 });
         }
+        this.ctx.restore();
+
         let dancer = { name: "name", positions: pos };
         this.dancers.push(dancer);
         this.selected = [dancer];
@@ -285,6 +301,7 @@ class StageView extends EventTarget {
         for (let i = 0; i < timeline.formations.length; i++) {
             this.draw(timeline.formations[i].ctx, false, i);
         }
+        dom.stageView.focus();
     }
     removeDancer() {
         //TODO: should have a dialogue box to confirm that this deletes this dancer from all formations
@@ -355,6 +372,9 @@ class StageView extends EventTarget {
     }
     mousemove(mouse) {
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
+        if (this.lastM != null && Math.abs(this.lastM.x - mouseT.x) < 0.01 &&
+            Math.abs(this.lastM.y - mouseT.y) < 0.01)
+            return; //For some reason mousemove is being called on mousedown even when no movement???
         this.dragged = true;
         if (this.dragging != null) {
             let pos = this.dragging.positions[timeline.curr];
@@ -522,6 +542,12 @@ class StageView extends EventTarget {
             return evt.preventDefault() && false;
         }
     }
+    mousedownOutside(){
+        if(this.renaming === null) return;
+        this.renaming = null;
+        this.renamingStart = false;
+        this.draw();
+    }
 
     mousewheel(evt, mouse) {
         let delta = evt.wheelDelta ? evt.wheelDelta / 40 : (evt.detail ? -evt.detail : 0);
@@ -561,5 +587,11 @@ class StageView extends EventTarget {
             ctx.translate(-center.x, -center.y);
         }
         this.draw();
+    }
+
+    /** Uses this canvas to measure some text for you thank you very much */
+    measureText(fontFamily, fontSize, fontWeight, text){
+        this.ctx.font = `normal normal ${fontWeight} ${fontSize} ${fontFamily}`;
+        return this.ctx.measureText(text).width;
     }
 }
