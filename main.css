@@ -89,6 +89,7 @@ main {
     min-width: 130px;
     font-size: 2.2em;
     width: 150px;
+    border-radius: 10px;
 }
 #stageView {
     grid-area: canvas;
@@ -101,6 +102,17 @@ main {
     align-self: start;
 }
 #dancerControls { grid-area: dancerControls; }
+
+button {
+    border-radius: 10px;
+}
+
+textarea {
+    border-radius: 10px;
+    border-color: gray;
+    background: whitesmoke;
+}
+
 #stageLegend { grid-area: stageLegend; }
 #formationComments {
     grid-area: formationComments;

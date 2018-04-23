@@ -13,7 +13,18 @@ class StageDrawing extends EventTarget {
         };
     }
 
-
+    extend(){
+    
+        if (arguments.length < 2) return;
+        var extended = arguments[0];
+        for (var _x = 1, _xx = arguments.length; _x < _xx; _x++) {
+          var base = arguments[_x];
+          for (var key in base) {
+            extended[key] = base[key];
+          }
+        }
+        return extended;
+      };
 
     Line(parent, x1, y1, x2, y2) {
 
@@ -63,9 +74,10 @@ class StageDrawing extends EventTarget {
             this.target.x = x !== undefined ? x : this.target.x;
             this.target.y = y !== undefined ? y : this.target.y;
         };
+    }
 
 
-        this.render = function (c) {
+    render(c) {
 
             // c passed in for previewing.
             if (c === undefined && this.hidden) return;
@@ -79,9 +91,9 @@ class StageDrawing extends EventTarget {
             p.stroke();
             this.path = p;
             console.log(p);
-        };
+    }
 
-        this.preview = function () {
+    preview () {
 
             ctx.save();
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -90,7 +102,65 @@ class StageDrawing extends EventTarget {
             this.render(this.parent.colors.preview);
             this.drawTarget();
             ctx.restore();
-        };
+    }
+
+
+    callEvent (e){
+      
+      if (!this.events[e.type]) return;
+      
+      e.preventDefault();
+      this.events[e.type].call(this, e);
+        
+    }
+    
+    // currentLine;
+    
+
+    // canvas = canvasEl;
+    // prefix = this.prefix = $(canvasEl).attr("id");
+    // id = 0;
+    
+    // //canvas.width = maximize ? window.innerWidth : canvasEl.width;
+    // //canvas.height = maximize ? window.innerHeight : canvasEl.height;
+    
+    // ctx = canvasEl.getContext("2d");
+    
+    // colors = COLORS;
+    
+    // // the array full of vectors
+    // children = [];
+    
+    push (item){
+      
+      this.children.push(item);
+      this.addToVectorlist(item);
+      this.render();
+    };
+    
+    newId(){
+      
+      id++;
+      return id-1;
+    };
+    
+   pop (){
+       // todo
+      var l = this.children.length;
+      if (l === 0) return;
+      var c = this.children[l-1];
+      this.removeFromVectorlist(c);
+      this.children.length = l - 1;
+      this.render();
+    }; 
+    
+    render (){
+      
+      var c = this.children;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        c.forEach(function(val, i, a){
+          val.render();
+        });
     }
 
     doneDrawing() {
