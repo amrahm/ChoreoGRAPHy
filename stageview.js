@@ -77,7 +77,6 @@ class StageView extends EventTarget {
             this.resetView();
         }
         this.draw();
-        timeline.resizeSlides();
     }
 
     /** Draw the stage, dancers, etc. */
@@ -122,8 +121,8 @@ class StageView extends EventTarget {
                 else
                     ctx.shadowColor = 'rgb(0, 56, 147)';
             } else if (this.selected.indexOf(dancer) != -1 && ctx === this.ctx) {
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = "blue";
+                ctx.shadowBlur = 40;
+                ctx.shadowColor = "rgb(43, 216, 0)";
             } else {
                 ctx.shadowBlur = 0;
             }

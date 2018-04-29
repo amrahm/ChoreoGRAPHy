@@ -1,4 +1,5 @@
 //TODO: We need a way to get back to this state
+//TODO: Don't let click done till done
 /** Implements drawing a custom stage */
 const boxSize = 10;
 const distThreshold = 30; //num pixels close that are considered close enough to close
@@ -96,7 +97,7 @@ class StageDrawing extends EventTarget {
 
 
 
-    checkBounds(point) {
+    checkBounds(point) { //FIXME: first point isn't taken into account for some reason (esp. if at bottom)
         if (point.x < this.bounds.minX)
             this.bounds.minX = point.x;
         else if (point.x > this.bounds.maxX)

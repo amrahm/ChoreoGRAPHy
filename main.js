@@ -1,3 +1,6 @@
+//TODO: Remove music bar unless we have time
+//TODO: If have time, @ tags in formation comments
+//TODO: Make instructions box collapsible
 let dom = {}; //Holds DOM elements that don’t change, to avoid repeatedly querying the DOM
 let stageDrawing = new StageDrawing(); //load stageDrawing code
 let stageView = new StageView(); //load stageView code

@@ -1,4 +1,6 @@
 //TODO: Transitions
+//TODO: Arrows for switching
+//TODO: Smoother rearrange
 
 class Timeline {
     constructor(slideT, slideWidth, slideHeight, slideSpacing, slideSmaller) {
@@ -46,11 +48,11 @@ class Timeline {
         let name = document.createElement("p");
         name.innerText = `Formation ${this.totalEver++}`;
         name.resizeMe = () => {
-            let size = 30;
+            let size = 25;
             
             let width = stageView.measureText(dom.sansFont, size, "normal", name.innerText);
             size *= this.slideWidth / width;
-            size = Math.max(Math.min(size, 34), 18);
+            size = Math.max(Math.min(size, 29), 18);
             if(!name.parentElement.classList.contains("selected"))
                 size *= this.slideSmaller;
             name.style.setProperty("font-size", `${size}px`);
@@ -85,14 +87,6 @@ class Timeline {
         this.resetOrder();
         this.selectFormation(insert);
         dom.deleteFormation.disabled = this.formations.length === 1;
-
-        let contentWidth = dom.timeline.scrollWidth - dom.timelinePaddingLeft.clientWidth -
-            dom.timelinePaddingRight.clientWidth;
-        if (contentWidth + this.slideWidth - this.slideSpacing * 2 + 3 > dom.timeline.clientWidth) {
-            dom.root.style.setProperty("--slide-height", "130px");
-            dom.root.style.setProperty("--extra", "2em + 22px");
-            dom.root.style.setProperty("--down", "4px");
-        }
     }
     selectFormation(i, deleting = false) {
         let formation = this.formations[i];
@@ -143,11 +137,6 @@ class Timeline {
         del.slide.style.setProperty("z-index", 0);
         del.slide.classList.add("removing");
         setTimeout(() => dom.timeline.removeChild(del.slide), this.slideT * 1000);
-        if (dom.timeline.scrollWidth - this.slideWidth <= dom.timeline.clientWidth) {
-            dom.root.style.setProperty("--slide-height", "140px");
-            dom.root.style.setProperty("--extra", "2em + 12px");
-            dom.root.style.setProperty("--down", "12px");
-        }
     }
     /** Sets the 'order' css property for all slides based on index in this.formations */
     resetOrder() {
@@ -156,17 +145,6 @@ class Timeline {
             slide.style.setProperty("order", i * 2);
             if (i === this.formations.length - 1) slide.classList.add("last");
             else slide.classList.remove("last");
-        }
-    }
-    resizeSlides() {
-        if (dom.timeline.scrollWidth <= dom.timeline.clientWidth) {
-            dom.root.style.setProperty("--slide-height", "140px");
-            dom.root.style.setProperty("--extra", "2em + 12px");
-            dom.root.style.setProperty("--down", "12px");
-        } else {
-            dom.root.style.setProperty("--slide-height", "130px");
-            dom.root.style.setProperty("--extra", "2em + 22px");
-            dom.root.style.setProperty("--down", "4px");
         }
     }
 

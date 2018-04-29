@@ -1,18 +1,20 @@
 :root {
     --slide-t: .7s;
     --slide-width: 200px;
-    --slide-smaller: .9;
-    --slide-height: 140px;
+    --slide-smaller: .90;
+    --slide-height: 128px;
     --slide-spacing: 12px;
-    --extra: 2em + 12px;
-    --down: 12px;
+    --extra: 2em + 24px;
+    --down: 4px;
 }
 #timeline {
     justify-content: flex-start;
     position: relative;
     display: flex;
-    overflow-x: auto;
+    overflow-x: scroll;
     margin-bottom: -5px;
+    outline: solid 1px black;
+    background-color: rgb(238, 238, 238);
 }
 #timelineControls {
     display: flex;
@@ -72,6 +74,10 @@
     box-shadow: none;
     outline: none;
 }
+#addFormation:hover > img {
+    outline: inset 3px rgba(194, 194, 194, 0.2);
+
+}
 #addFormation:active > img {
     outline: inset 3px rgb(194, 194, 194);
 }
@@ -92,7 +98,7 @@
     grid-area: 1 1 2 2;
     text-align: center;
     margin: 0;
-    font: 30px var(--sans-font);
+    font: 25px var(--sans-font);
     transition: all var(--slide-t);
     padding-bottom: 8px;
 }

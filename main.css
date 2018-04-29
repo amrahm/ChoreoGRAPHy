@@ -3,9 +3,19 @@
 	--background-main: hsl(0, 0%, 100%);
     --color-blue: hsl(210, 80%, 45%);
     --sans-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+    --grid-template: 
+        [row1-start] ". . . . . . . ." 10px [row1-end]
+        [row2-start] "header header formationTitle formationTitle formationTitle . . ." 2.5em [row2-end]
+        [row3-start] "groups . canvas canvas canvas . dancerControls ." 100px [row3-end]
+        [row4-start] "groups . canvas canvas canvas . formationComments ." auto [row4-end]
+        [row5-start] "groups . canvas canvas canvas . formationComments ." 100px [row5-end]
+        [row6-start] "stageLegend . timeline timeline timeline . timelineControls ." calc(var(--slide-height) + var(--extra)) [row6-end]
+        [row7-start] "music music music music music music music music" 50px [row7-end]
+        / 5fr 20px 8fr 8fr 8fr 20px 5fr 20px;
 }
 
-html, body, main {
+html, body, main, #stageDrawing {
     margin: 0;
     height: 100%;
 }
@@ -15,15 +25,7 @@ main {
     justify-content: stretch;
     align-items: stretch;
     grid-gap: 10px 0px;
-    grid-template:
-        [row1-start] ". . . . . . . ." 10px [row1-end]
-        [row2-start] "header header formationTitle formationTitle formationTitle . . ." 2.5em [row2-end]
-        [row3-start] "groups . canvas canvas canvas . dancerControls ." 100px [row3-end]
-        [row4-start] "groups . canvas canvas canvas . formationComments ." auto [row4-end]
-        [row5-start] "stageLegend . canvas canvas canvas . formationComments ." 100px [row5-end]
-        [row6-start] "timeline timeline timeline timeline timeline . timelineControls ." calc(var(--slide-height) + var(--extra)) [row6-end]
-        [row7-start] "music music music music music music music music" 50px [row7-end]
-        / 5fr 20px 8fr 8fr 8fr 20px 5fr 20px;
+    grid-template: var(--grid-template);
 }
 
 
@@ -31,7 +33,6 @@ main {
 #stageDrawing {
     /* TODO: Remove display line if we want to start off with stage drawing*/
     grid-area: 1 / 1 / 8 / 9;
-    background: rgb(220, 220, 220);
     z-index: 100;
 }
 
@@ -58,30 +59,6 @@ main {
     border-radius: 10px;
     text-align: center;
 }
-#stageTitle {
-    grid-area: stageTitle;
-    border-radius: 10px;
-    text-align: center;
-    align-content: center;
-}
-#titleField {
-    width: 90%;
-    height: 90%;
-    border: solid 1px gray;
-    border-radius: 10px;
-    text-align: center;
-    font-size: large;
-    color: gray;
-}
-#commentField {
-    width: 90%;
-    height: 90%;
-    border: solid 1px gray;
-    border-radius: 10px;
-    text-align: center;
-    font-size: small;
-    color: gray;
-}
 #formationTitle {
     grid-area: formationTitle;
     text-align: center;
@@ -89,7 +66,7 @@ main {
     min-width: 130px;
     font-size: 2.2em;
     width: 150px;
-    border-radius: 10px;
+    border-radius: 1px;
 }
 #stageView {
     grid-area: canvas;
@@ -108,16 +85,18 @@ button {
 }
 
 textarea {
-    border-radius: 10px;
+    /* border-radius: 10px; */
     border-color: gray;
     background: whitesmoke;
 }
 
-#stageLegend { grid-area: stageLegend; }
+#stageLegend { 
+    grid-area: stageLegend;
+    font: 1em var(--sans-font);
+}
 #formationComments {
     grid-area: formationComments;
     margin-top: 10px;
-    /* border: dashed 1px black; */
     display: flex;
     flex-direction: column;
 }
@@ -127,7 +106,6 @@ textarea {
     margin: 0;
 }
 #formationCommentsBox {
-    /* grid-area: formationCommentsBox; */
     flex: 1 1 auto;
     resize: none;
     width: calc(100% - 6px);
