@@ -1,13 +1,11 @@
 @import url('https://fonts.googleapis.com/css?family=Comfortaa|Julius+Sans+One');
 :root { /* Global variables */
-	--background-main: hsl(0, 0%, 100%);
-    --color-blue: hsl(210, 80%, 45%);
     --sans-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
     --grid-template: 
         [row1-start] ". . . . . . . ." 10px [row1-end]
         [row2-start] "header header formationTitle formationTitle formationTitle . . ." 2.5em [row2-end]
-        [row3-start] "groups . canvas canvas canvas . dancerControls ." 100px [row3-end]
+        [row3-start] "groups . canvas canvas canvas . dancerControls ." 120px [row3-end]
         [row4-start] "groups . canvas canvas canvas . formationComments ." auto [row4-end]
         [row5-start] "groups . canvas canvas canvas . formationComments ." 100px [row5-end]
         [row6-start] "stageLegend . timeline timeline timeline . timelineControls ." calc(var(--slide-height) + var(--extra)) [row6-end]
@@ -20,7 +18,7 @@ html, body, main, #stageDrawing {
     height: 100%;
 }
 main {
-    background-color: var(--background-main);
+    background-color: hsl(0, 0%, 100%);
     display: grid;
     justify-content: stretch;
     align-items: stretch;
@@ -28,17 +26,32 @@ main {
     grid-template: var(--grid-template);
 }
 
-
-
 #stageDrawing {
-    /* TODO: Remove display line if we want to start off with stage drawing*/
     grid-area: 1 / 1 / 8 / 9;
-    z-index: 100;
+    z-index: 999;
+}
+#stageViewControls {
+    grid-area: canvas;
+    justify-self: end;
+    align-self: start;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    margin: 7px -4px 0 0;
+    z-index: 1002;
+}
+#zoomIn { cursor: zoom-in; }
+#zoomOut { cursor: zoom-out; }
+#stageView {
+    grid-area: canvas;
+    justify-self: stretch;
+    align-self: stretch;
+    z-index: 1001;
 }
 
 .n1 {
     grid-area: header;
-    color: var(--color-blue);
+    color: hsl(210, 80%, 45%);
     font-size: calc((11vw) / 7);
     font-family: 'Comfortaa', cursive;
     font-style: italic;
@@ -68,20 +81,35 @@ main {
     width: 150px;
     border-radius: 1px;
 }
-#stageView {
-    grid-area: canvas;
-    justify-self: stretch;
-    align-self: stretch;
-}
-#stageViewControls {
-    grid-area: canvas;
-    justify-self: end;
-    align-self: start;
-}
+
 #dancerControls { grid-area: dancerControls; }
 
 button {
     border-radius: 10px;
+}
+.roundedBoxIconButton {
+    --c: rgb(247, 247, 247);
+    flex-grow: 1;
+    display: flex;
+    background-size: contain;
+    background-position: bottom left;
+    background-repeat: no-repeat;
+    background-color: var(--c);
+    border: outset 1px;
+    font: 100% var(--sans-font);
+    padding: 0;
+    text-shadow: 1px 1px 1px var(--c), -1px 1px 1px var(--c),
+                 1px -1px 1px var(--c), -1px -1px 1px var(--c),
+                 2px 2px 1px var(--c), -2px 2px 1px var(--c),
+                 2px -2px 1px var(--c), -2px -2px 1px var(--c),
+                 3px 3px 1px var(--c), -3px 3px 1px var(--c),
+                 3px -3px 1px var(--c), -3px -3px 1px var(--c);
+    text-align: center;
+    justify-content: center;
+    align-content: center;
+}
+.roundedBoxIconButton:active {
+    border: inset 1px;
 }
 
 textarea {

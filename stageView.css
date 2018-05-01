@@ -1,15 +1,11 @@
 #stageView {
     background-color: white;
-    border: solid 2px black;
+    border: 1px solid rgb(48, 48, 48);
     margin: -2px -1px -1px -1px;
     border-radius: 10px;
 }
-#stageViewControls {
-    border: none;
-    display: flex;
-    justify-content: space-between;
-    margin: 7px -4px 0 0;
-    z-index: 1;
+#stageView:hover {
+    border: 1px solid rgb(192, 192, 192);
 }
 #zoomIn {
     width: 40px;
@@ -35,38 +31,16 @@
     flex-direction: column;
 }
 
-#addDancer, #removeDancer {
-    flex-grow: 1;
-    display: flex;
-    background-size: contain;
-    background-position: bottom left;
-    background-repeat: no-repeat;
-    background-color: rgb(247, 247, 247);
-    border: outset;
-    font: 100% var(--sans-font);
-    padding: 0;
-    text-shadow: 1px 1px 1px white, -1px 1px 1px white,
-                 1px -1px 1px white, -1px -1px 1px white;
-}
 #addDancer {
     margin-bottom: 10px;
     background-image: url("graphics/AddIcon.png");
 }
-#addDancer:active {
-    color: hsl(120, 100%, 33%);
-    border: inset;    
-}
-#removeDancer {
-    background-image: url("graphics/RemoveIcon.png");
-}
-#removeDancer:disabled {
-    background-image: url("graphics/RemoveIconDisabled.png");
-}
-#removeDancer:active {
-    color: hsl(0, 100%, 32%);
-    border: inset;    
-}
-#addDancer > div , #removeDancer > div { flex: 0 1 25%; }
+#addDancer:active { color: hsl(120, 100%, 33%); }
+#removeDancer { background-image: url("graphics/RemoveIcon.png"); }
+#removeDancer:disabled { background-image: url("graphics/RemoveIconDisabled.png"); }
+#removeDancer:active { color: hsl(0, 100%, 32%); }
+#addDancer > div , #removeDancer > div { flex: 1 2 0; }
+#addDancer > p , #removeDancer > p { flex: 1 1 60%; }
 
 
 #stageLegend {

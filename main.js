@@ -2,7 +2,6 @@
 //TODO: If have time, @ tags in formation comments
 //TODO: Make instructions box collapsible
 let dom = {}; //Holds DOM elements that don’t change, to avoid repeatedly querying the DOM
-let stageDrawing = new StageDrawing(); //load stageDrawing code
 let stageView = new StageView(); //load stageView code
 let timeline; //load stageView code, initialized when content loaded
 
@@ -10,25 +9,27 @@ let timeline; //load stageView code, initialized when content loaded
 Util.events(document, {
     //runs at the end of start-up when the DOM is ready
     "DOMContentLoaded": () => {
+        dom.drawingMode = true;
+        
         dom.root = Util.one("html");
         dom.sansFont = Util.getStyleValue(dom.root, "--sans-font");
         dom.stageDrawing = Util.one("#stageDrawing");
-        dom.drawingCanvas = Util.one("#drawingCanvas");
+        dom.confirmStage = Util.one("#confirmStage");
+        dom.drawingInstruction = Util.one("#drawingInstruction");
+        dom.stageViewControls = Util.one("#stageViewControls");
+        dom.stageViewControls.style.display = "inline";
         dom.timeline = Util.one("#timeline");
         timeline = new Timeline(parseFloat(Util.getStyleValue(dom.root, "--slide-t")),
             parseFloat(Util.getStyleValue(dom.root, "--slide-width")),
             parseFloat(Util.getStyleValue(dom.root, "--slide-height")),
             parseFloat(Util.getStyleValue(dom.root, "--slide-spacing")),
             parseFloat(Util.getStyleValue(dom.root, "--slide-smaller")));
-        dom.confirmStage = Util.one("#confirmStage");
         dom.addDancer = Util.one("#addDancer");
         dom.removeDancer = Util.one("#removeDancer");
         dom.zoomIn = Util.one("#zoomIn");
         dom.zoomOut = Util.one("#zoomOut");
         dom.resetView = Util.one("#resetView");
         dom.stageView = Util.one("#stageView");
-        dom.stageViewControls = Util.one("#stageViewControls");
-        dom.stageViewControls.style.display = "inline";
         dom.addFormation = Util.one("#addFormation");
         dom.insertFormation = Util.one("#insertFormation");
         dom.deleteFormation = Util.one("#deleteFormation");
@@ -38,10 +39,9 @@ Util.events(document, {
         dom.formationTitle = Util.one("#formationTitle");
 
 
-        stageDrawing.ctx = dom.drawingCanvas.getContext('2d', { alpha: false });
         stageView.ctx = getTrackedContext(dom.stageView.getContext('2d', { alpha: false }));
 
-        dom.confirmStage.addEventListener("click", () => stageDrawing.doneDrawing());
+        dom.confirmStage.addEventListener("click", () => stageView.doneDrawing());
         dom.addDancer.addEventListener("click", () => stageView.addDancer());
         dom.removeDancer.addEventListener("click", () => stageView.removeDancer());
         dom.zoomIn.addEventListener("click", () => stageView.zoomAnim(20, 1.3));
@@ -56,23 +56,8 @@ Util.events(document, {
             formationTitleWidth();
         });
 
-        stageDrawing.respondCanvas();
         stageView.respondCanvas(true);
-        window.onresize = () => onResize();
-        Util.events(dom.drawingCanvas, {
-            "mousedown": evt => {
-                stageDrawing.mousedown(getCanvasCoords(dom.drawingCanvas, evt), evt.buttons);
-            },
-            "mousemove": evt => {
-                stageDrawing.mousemove(getCanvasCoords(dom.drawingCanvas, evt));
-            },
-            "mouseup": evt => {
-                stageDrawing.mouseup(getCanvasCoords(dom.drawingCanvas, evt));
-            },
-            "dblclick": evt => {
-                stageDrawing.dblclick();
-            }
-        });
+        window.onresize = () => stageView.respondCanvas();
         Util.events(dom.stageView, {
             "mousedown": evt => {
                 stageView.mousedown(getCanvasCoords(dom.stageView, evt), evt.buttons);
@@ -138,9 +123,4 @@ function formationTitleWidth() {
     let width = stageView.measureText(dom.sansFont,
         Util.getStyleValue(dom.formationTitle, "font-size"), "normal", dom.formationTitle.value);
     dom.formationTitle.style.setProperty("width", `${width + 40}px`);
-}
-
-function onResize(){
-    stageView.respondCanvas();
-    stageDrawing.respondCanvas();
 }

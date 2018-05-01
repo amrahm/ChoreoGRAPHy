@@ -3,10 +3,13 @@
 //TODO: Front view
 //TODO: CTRL/Shift for selecting multiple, del for removing dancer
 //TODO: Some way of setting this.stageWidth in the UI
+//TODO: Don't let click done till done
 
 const faceRotation = false;
 const dancerSize = 20; //radius of dancer, in centimeters
 const dancerFontSize = 25; //in px
+const boxSize = 10;
+const distThreshold = 30; //num pixels close that are considered close enough to close
 
 /** Implements the top and front stage views, with adding and removing dancers */
 class StageView extends EventTarget {
@@ -15,6 +18,17 @@ class StageView extends EventTarget {
         this.ctx = null; //initialized in main.js
         this.width = null; //initialized in respondCanvas()
         this.height = null; //^
+
+        //:::Stage Drawing
+        this.lastM = null;
+        this.mdDrawing = false; //is the mouse down and drawing a line?
+        this.mdMoving = false; //is the mouse down and moving a point?
+        this.firstPoint = null;
+        this.closed = false;
+        this.points = [];
+        this.currPoint = 0;
+
+        //:::Stage Viewing
         this.pageDrag = null; //dragging page
         this.dragging = null; //dragged dancer
         this.hovering = null; //dancer under mouse
@@ -26,12 +40,14 @@ class StageView extends EventTarget {
         this.selectionBox = null; //The actual box, for hitTesting
         this.selected = []; //selected dancers
         this.dancers = []; //ex: {name: "name", positions: [pos, ...]}; pos = {x: x, y:y, angle: angle}
-
         this.redrawThumb = false; //should the formation thumbnail be redrawn?
 
-        this.stage = null;
-        this.stageBounds = { maxX: 0, maxY: 0 }; //unconverted pixel size of stage (mins are both 0)
+        //:::STAGE
+        this.stage = new Path2D();
+        this.bounds = { minX: 100000000, maxX: 0, minY: 1000000000000, maxY: 0 }; //pixel size of stage
         this.stageWidth = 0; //estimation of real stage width, in centimeters
+
+
 
         //---TESTING---
         // let sW = 100;
@@ -48,18 +64,6 @@ class StageView extends EventTarget {
         // this.stageWidth = 500;
     }
 
-    /** Set the stage.
-     * @param {*} stage a Path2D() Object
-     * @param {*} stageBounds object of the form { maxX: 0, maxY: 0 }
-     * @param {*} stageWidth estimation of real stage width, in centimeters */
-    setStage(stage, stageBounds, stageWidth){
-        this.stage = stage;
-        this.stageBounds = stageBounds;
-        this.stageWidth = stageWidth;
-        this.resetView();
-        this.draw();
-    }
-
     /** Respond to window resize so that drawings don't get distorted. */
     respondCanvas(firstTime = false) {
         let oldC = this.ctx.transformedPoint(this.width / 2, this.height / 2);
@@ -73,8 +77,6 @@ class StageView extends EventTarget {
             this.ctx.transform(oldT.a, oldT.b, oldT.c, oldT.d, oldT.e, oldT.f);
             let newC = this.ctx.transformedPoint(this.width / 2, this.height / 2);
             this.ctx.translate(newC.x - oldC.x, newC.y - oldC.y);
-        } else {
-            this.resetView();
         }
         this.draw();
     }
@@ -88,21 +90,75 @@ class StageView extends EventTarget {
                 parseInt(Util.getStyleValue(ctx.canvas, "height")));
         }
 
+
+
+        if (dom.drawingMode) {
+            ctx.save();
+            ctx.setTransform();
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, this.width, this.height);
+            ctx.restore();
+
+            if (this.firstPoint !== null) {
+                ctx.strokeStyle = "rgb(0, 0, 0)";
+                let stage = new Path2D();
+                this.points.forEach(point => {
+                    stage.lineTo(point.x, point.y);
+                });
+                this.stage = stage;
+                if (this.closed) {
+                    ctx.fillStyle = "rgb(255, 250, 245)";
+                    ctx.fill(this.stage);
+                }
+                ctx.strokeStyle = "rgb(0, 0, 0)";
+                ctx.stroke(this.stage);
+
+                if (!this.closed) {
+                    ctx.beginPath();
+                    ctx.arc(this.firstPoint.x, this.firstPoint.y, boxSize, 0, Math.PI * 2);
+                    ctx.fillStyle = this.currPoint == 0 ? "rgb(66, 134, 244)" : "rgb(200, 200, 200)";
+                    ctx.fill();
+                    ctx.strokeStyle = "rgb(0, 0, 0)";
+                    ctx.stroke();
+                }
+                if (this.points.length > 0 && this.currPoint != 0 || this.closed) {
+                    console.log(this.points.length, this.currPoint);
+                    let currPt = this.points[this.currPoint];
+                    ctx.fillStyle = "rgb(66, 134, 244)";
+                    ctx.fillRect(currPt.x - boxSize / 2, currPt.y - boxSize / 2, boxSize, boxSize);
+                }
+                this.points.forEach(point => {
+                    if (this.closed || point !== this.firstPoint)
+                        ctx.strokeRect(point.x - boxSize / 2, point.y - boxSize / 2, boxSize, boxSize);
+                });
+            }
+            if (this.closed) {
+                this.stage.closePath();
+                ctx.strokeStyle = "rgb(0, 0, 0)";
+                ctx.stroke(this.stage);
+                ctx.fillStyle = "rgb(66, 134, 244)";
+                let currPt = this.points[this.currPoint];
+                ctx.fillRect(currPt.x - boxSize / 2, currPt.y - boxSize / 2, boxSize, boxSize);
+            }
+
+            return; //Skip everything below
+        }
+
         ctx.save();
         ctx.setTransform();
-        ctx.fillStyle = 'rgb(200, 200, 200)';
+        ctx.fillStyle = "rgb(200, 200, 200)";
         ctx.fillRect(0, 0, this.width, this.height);
         ctx.restore();
 
         //:::STAGE
         if (this.stage != null) {
             ctx.save();
-            let scalar = this.stageWidth / this.stageBounds.maxX;
+            let scalar = this.stageWidth / this.bounds.maxX;
             ctx.scale(scalar, scalar);
 
             ctx.shadowBlur = 20;
             ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
-            ctx.fillStyle = 'rgb(255, 250, 245)';
+            ctx.fillStyle = "rgb(255, 250, 245)";
             ctx.fill(this.stage);
 
             ctx.restore();
@@ -119,19 +175,19 @@ class StageView extends EventTarget {
                 if (this.selected.indexOf(dancer) === -1)
                     ctx.shadowColor = "black";
                 else
-                    ctx.shadowColor = 'rgb(0, 56, 147)';
+                    ctx.shadowColor = "rgb(0, 56, 147)";
             } else if (this.selected.indexOf(dancer) != -1 && ctx === this.ctx) {
                 ctx.shadowBlur = 40;
                 ctx.shadowColor = "rgb(43, 216, 0)";
             } else {
                 ctx.shadowBlur = 0;
             }
-            ctx.fillStyle = 'rgb(60, 60, 60)';
+            ctx.fillStyle = "rgb(60, 60, 60)";
             ctx.beginPath();
             ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
             ctx.fill();
             ctx.shadowBlur = 0;
-            ctx.strokeStyle = 'rgb(200, 200, 200)';
+            ctx.strokeStyle = "rgb(200, 200, 200)";
             ctx.stroke();
 
             //:::::::ROTATED STUFF:::::::
@@ -140,21 +196,21 @@ class StageView extends EventTarget {
             ctx.translate(pos.x, pos.y);
             ctx.rotate(pos.angle);
 
-            ctx.fillStyle = 'rgb(140, 140, 140)';
+            ctx.fillStyle = "rgb(140, 140, 140)";
             ctx.beginPath();
             ctx.arc(0, 0, r, 0, Math.PI);
             ctx.bezierCurveTo(-r * .4, r * .55, r * .4, r * .55, r, 0);
             ctx.fill();
-            ctx.strokeStyle = 'rgb(20, 20, 20)';
+            ctx.strokeStyle = "rgb(20, 20, 20)";
             ctx.stroke();
 
             //:::EYES
-            ctx.fillStyle = 'rgb(250, 250, 250)';
+            ctx.fillStyle = "rgb(250, 250, 250)";
             ctx.beginPath();
             ctx.arc(r * .45, r * .6, r / 5, 0, Math.PI * 2);
             ctx.arc(-r * .45, r * .6, r / 5, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = 'rgb(0, 0, 0)';
+            ctx.fillStyle = "rgb(0, 0, 0)";
             ctx.beginPath();
             ctx.arc(r * .45, r * .65, r / 10, 0, Math.PI * 2);
             ctx.arc(-r * .45, r * .65, r / 10, 0, Math.PI * 2);
@@ -196,14 +252,14 @@ class StageView extends EventTarget {
                 let height = size;
                 let offset = flipped ? -height / 2 : -height + height / 8;
                 if (this.renamingStart && this.renaming === dancer) {
-                    this.ctx.fillStyle = 'rgba(130, 166, 255, .5)';
+                    this.ctx.fillStyle = "rgba(130, 166, 255, .5)";
                     ctx.fillRect(-width / 2, offset, width, height);
                 } else if (this.renaming === dancer) {
-                    this.ctx.fillStyle = 'rgba(200, 186, 160, .5)';
+                    this.ctx.fillStyle = "rgba(200, 186, 160, .5)";
                     ctx.fillRect(-width / 2, offset, width, height);
                 }
 
-                ctx.strokeStyle = 'rgb(0, 0, 0)';
+                ctx.strokeStyle = "rgb(0, 0, 0)";
                 if (!smaller) {
                     ctx.strokeText(dancer.name, .5, .5);
                     ctx.strokeText(dancer.name, -.5, .5);
@@ -212,7 +268,7 @@ class StageView extends EventTarget {
                 } else {
                     ctx.strokeText(dancer.name, 0, 0);
                 }
-                ctx.fillStyle = 'rgb(255, 255, 255)';
+                ctx.fillStyle = "rgb(255, 255, 255)";
                 ctx.fillText(dancer.name, 0, 0);
                 ctx.restore();
             }
@@ -237,9 +293,9 @@ class StageView extends EventTarget {
                 icon.lineTo(r * 0.24, r * 1.37);
                 icon.lineTo(r * 0.54, r * 1.58);
                 icon.closePath();
-                ctx.fillStyle = 'rgb(0, 0, 0)';
+                ctx.fillStyle = "rgb(0, 0, 0)";
                 ctx.fill(icon);
-                ctx.strokeStyle = 'rgb(255, 255, 255)';
+                ctx.strokeStyle = "rgb(255, 255, 255)";
                 ctx.stroke(icon);
 
                 dancer.rotateIcon = new Path2D(); //bounding box to make clicking easier
@@ -248,7 +304,7 @@ class StageView extends EventTarget {
                 dancer.rotateIcon.lineTo(r * 0.5, r * 2.1);
                 dancer.rotateIcon.lineTo(-r * 0.5, r * 2.1);
                 dancer.rotateIcon.closePath();
-                // ctx.strokeStyle = 'rgb(0, 0, 0)';
+                // ctx.strokeStyle = "rgb(0, 0, 0)";
                 // ctx.stroke(dancer.rotateIcon);
 
                 ctx.restore();
@@ -260,9 +316,9 @@ class StageView extends EventTarget {
             this.selectionBox = new Path2D();
             this.selectionBox.rect(this.selP1.x, this.selP1.y,
                 this.selP2.x - this.selP1.x, this.selP2.y - this.selP1.y);
-            this.ctx.fillStyle = 'rgba(130, 166, 255, .5)';
+            this.ctx.fillStyle = "rgba(130, 166, 255, .5)";
             this.ctx.fill(this.selectionBox);
-            this.ctx.strokeStyle = 'rgb(130, 166, 255)';
+            this.ctx.strokeStyle = "rgb(130, 166, 255)";
             this.ctx.stroke(this.selectionBox);
         }
     }
@@ -274,7 +330,7 @@ class StageView extends EventTarget {
                 safe = true;
                 this.dancers.forEach(dancer => {
                     let pos = dancer.positions[formation];
-                    if ((pos.x - pt.x) ** 2 + (pos.y - pt.y) ** 2 < (dancerSize * 2) ** 2) {
+                    if (this.inRadius(pt, pos, dancerSize * 2)) {
                         safe = false;
                         pt.x += dancerSize * (Math.random() < 0.5 ? -1 : 1);
                         pt.y += dancerSize * (Math.random() < 0.5 ? -1 : yOth);
@@ -291,12 +347,12 @@ class StageView extends EventTarget {
         this.resetView();
         let otherPt = null;
         for (let i = 0; i < timeline.formations.length; i++) {
-            if(i == timeline.curr){
+            if (i == timeline.curr) {
                 pos.push({ x: currPt.x, y: currPt.y, angle: 0 });
                 continue;
             }
-            if(otherPt == null) //try and keep it the same for all other slides if possible
-                otherPt = this.ctx.transformedPoint(this.width / 2, -dancerSize);
+            if (otherPt == null) //try and keep it the same for all other slides if possible
+                otherPt = this.ctx.transformedPoint(this.width / 2, dancerSize);
             findSafe(otherPt, i, 0);
             pos.push({ x: otherPt.x, y: otherPt.y, angle: 0 });
         }
@@ -327,6 +383,40 @@ class StageView extends EventTarget {
         dom.removeDancer.disabled = true;
     }
 
+
+    doneDrawing() {
+        dom.stageDrawing.style.display = "none";
+        dom.confirmStage.style.display = "none";
+        dom.drawingInstruction.style.display = "none";
+        dom.stageView.classList.remove("drawing");
+        dom.drawingMode = false;
+        this.points.forEach(point => this.checkBounds(point));
+        let shiftX = -this.bounds.minX;
+        let shiftY = -this.bounds.minY;
+        this.bounds = { maxX: this.bounds.maxX + shiftX, maxY: this.bounds.maxY + shiftY };
+        let stage = new Path2D();
+        this.points.forEach(point => {
+            stage.lineTo(point.x + shiftX, point.y + shiftY);
+        });
+        stage.closePath();
+        this.stage = stage;
+        this.stageWidth = 500;
+        this.resetView();
+        timeline.insertFormation();
+    }
+
+    checkBounds(point) { //FIXME: first point isn't taken into account for some reason (esp. if at bottom)
+        if (point.x < this.bounds.minX)
+            this.bounds.minX = point.x;
+        else if (point.x > this.bounds.maxX)
+            this.bounds.maxX = point.x;
+
+        if (point.y < this.bounds.minY)
+            this.bounds.minY = point.y;
+        else if (point.y > this.bounds.maxY)
+            this.bounds.maxY = point.y;
+    }
+
     mousedown(mouse, buttons) {
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
         this.lastM = mouseT;
@@ -334,7 +424,31 @@ class StageView extends EventTarget {
         this.renaming = null;
         this.renamingStart = false;
         if (buttons === 1) { //left click
-            if (!faceRotation) {
+            if (dom.drawingMode) { //:::DRAWING
+                for (let i = 0; i < this.points.length; i++) {
+                    let point = this.points[i];
+                    if (this.inRadius(mouseT, point, boxSize)) {
+                        if (i === 0 && this.points.length > 2 && this.currPoint !== 0 && !this.closed) {
+                            this.closed = true;
+                            dom.confirmStage.disabled = false;
+                            this.currPoint = 0;
+                            return;
+                        }
+                        dom.stageView.classList.remove("drawing");
+                        this.mdMoving = true;
+                        this.currPoint = i;
+                        return;
+                    }
+                }
+
+                if (this.points.length === 0) this.firstPoint = this.lastM;
+                this.mdDrawing = true;
+                this.draw();
+
+                return; //skip everything else
+            }
+
+            if (!faceRotation) { //:::ROTATING
                 for (let i = this.selected.length - 1; i >= 0; i--) {
                     let dancer = this.selected[i];
                     let pos = dancer.positions[timeline.curr];
@@ -349,7 +463,7 @@ class StageView extends EventTarget {
                     this.ctx.restore();
                 }
             }
-            for (let i = this.dancers.length - 1; i >= 0; i--) { //backwards so top-most is chosen first
+            for (let i = this.dancers.length - 1; i >= 0; i--) { //:::MOVING
                 let dancer = this.dancers[i];
                 let pos = dancer.positions[timeline.curr];
                 if (faceRotation) {
@@ -366,7 +480,7 @@ class StageView extends EventTarget {
                     this.ctx.restore();
                 }
 
-                if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerSize) ** 2) {
+                if (this.inRadius(mouseT, pos, dancerSize)) {
                     this.moveDancerToEnd(dancer, i);
                     if (this.selected.indexOf(dancer) === -1) this.selected = [];
                     this.dragging = dancer;
@@ -377,7 +491,7 @@ class StageView extends EventTarget {
             //No dancer was clicked on, so start box select:
             this.selected = [];
             this.selP1 = mouseT;
-        } else {//other click, probably right or middle
+        } else {//other click, probably right or middle :::PANNING/ZOOMING
             this.pageDrag = this.lastM;
         }
     }
@@ -386,6 +500,35 @@ class StageView extends EventTarget {
         if (this.lastM != null && Math.abs(this.lastM.x - mouseT.x) < 0.01 &&
             Math.abs(this.lastM.y - mouseT.y) < 0.01)
             return; //For some reason mousemove is being called on mousedown even when no movement???
+
+        if (this.pageDrag != null) {
+            this.ctx.translate(mouseT.x - this.pageDrag.x, mouseT.y - this.pageDrag.y);
+            dom.stageViewControls.style.display = "none";
+            this.draw();
+            return;
+        }
+
+        if (dom.drawingMode) {
+            if (this.mdDrawing) {
+                this.lastM = mouseT;
+                if (this.points.length === 0) this.firstPoint = mouseT;
+                this.draw();
+                return; //skip everything else
+            } else if (this.mdMoving) {
+                this.points[this.currPoint] = mouseT;
+                if (this.currPoint === 0) this.firstPoint = mouseT;
+                this.draw();
+                return; //skip everything else
+            } else {
+                dom.stageView.classList.add("drawing");
+                this.points.forEach(point => {
+                    if (this.inRadius(mouseT, point, boxSize) &&
+                        (this.closed || this.points.length <= 2 || point !== this.firstPoint))
+                        dom.stageView.classList.remove("drawing");
+                });
+            }
+        }
+
         this.dragged = true;
         if (this.dragging != null) {
             let pos = this.dragging.positions[timeline.curr];
@@ -418,10 +561,6 @@ class StageView extends EventTarget {
             this.selP2 = mouseT;
             dom.stageViewControls.style.display = "none";
             this.draw();
-        } else if (this.pageDrag != null) {
-            this.ctx.translate(mouseT.x - this.pageDrag.x, mouseT.y - this.pageDrag.y);
-            dom.stageViewControls.style.display = "none";
-            this.draw();
         }
         let setHovering = false;
         for (let i = this.dancers.length - 1; i >= 0; i--) { //backwards so top-most is chosen first
@@ -444,6 +583,18 @@ class StageView extends EventTarget {
     }
     mouseup() {
         if (!this.isDragging()) return;
+        if (dom.drawingMode && this.mdDrawing) {
+            if (this.points.length === 0) {
+                this.firstPoint = this.lastM;
+                this.points.push(this.lastM);
+            } else {
+                this.points.splice(++this.currPoint, 0, this.lastM);
+            }
+            this.draw();
+            this.mdDrawing = false;
+            return; //skip everything else
+        }
+        this.mdMoving = false;
         this.dragging = null;
         this.rotating = null;
         this.pageDrag = null;
@@ -500,7 +651,8 @@ class StageView extends EventTarget {
     }
     /** Returns whether or not anything is currently being dragged */
     isDragging() {
-        return this.dragging != null || this.rotating != null || this.pageDrag != null || this.selP1 != null;
+        return this.dragging != null || this.rotating != null || this.pageDrag != null ||
+            this.selP1 != null || this.mdDrawing || this.mdMoving;
     }
 
     dblclick(mouse) {
@@ -536,24 +688,40 @@ class StageView extends EventTarget {
         this.draw();
     }
     keydown(evt) {
-        if (this.renaming === null) return;
-        if (evt.keyCode === 8) { //Backspace
-            if (this.renamingStart) {
-                this.renaming.name = "";
-                this.renamingStart = false;
-            } else {
-                this.renaming.name = this.renaming.name.substring(0, this.renaming.name.length - 1);
+        if (dom.drawingMode) {
+            if (evt.keyCode === 46 || evt.keyCode === 8) { //Del or Backspace
+                this.points.splice(this.currPoint--, 1);
+                if (this.currPoint < 0) {
+                    this.currPoint = this.closed ? this.points.length - 1 : 0;
+                }
+                if (this.points.length <= 2 && this.closed) {
+                    this.closed = false;
+                    dom.confirmStage.disabled = true;
+                }
+                this.firstPoint = this.points.length > 0 ? this.points[0] : null;
+                console.log(this.firstPoint);
+                this.draw();
             }
-            this.draw();
-            return evt.preventDefault() && false;
-        } else if (evt.keyCode === 37 || evt.keyCode === 39 && this.renamingStart) { //left and right
-            this.renamingStart = false;
-            this.draw();
-            return evt.preventDefault() && false;
+        }
+        if (this.renaming !== null) {
+            if (evt.keyCode === 8) { //Backspace
+                if (this.renamingStart) {
+                    this.renaming.name = "";
+                    this.renamingStart = false;
+                } else {
+                    this.renaming.name = this.renaming.name.substring(0, this.renaming.name.length - 1);
+                }
+                this.draw();
+                return evt.preventDefault() && false;
+            } else if (evt.keyCode === 37 || evt.keyCode === 39 && this.renamingStart) { //left and right
+                this.renamingStart = false;
+                this.draw();
+                return evt.preventDefault() && false;
+            }
         }
     }
-    mousedownOutside(){
-        if(this.renaming === null) return;
+    mousedownOutside() {
+        if (this.renaming === null) return;
         this.renaming = null;
         this.renamingStart = false;
         this.draw();
@@ -586,9 +754,9 @@ class StageView extends EventTarget {
     resetView(ctx = this.ctx, width = this.width, height = this.height) {
         ctx.setTransform(); //Set to defaults
         if (this.stage != null) {
-            let scalar = this.stageWidth / this.stageBounds.maxX;
-            let sWidth = this.stageBounds.maxX * scalar;
-            let sHeight = this.stageBounds.maxY * scalar;
+            let scalar = this.stageWidth / this.bounds.maxX;
+            let sWidth = this.bounds.maxX * scalar;
+            let sHeight = this.bounds.maxY * scalar;
             ctx.translate((width - sWidth) / 2, (height - sHeight) / 2);
             let zoomScalar = Math.min(width / sWidth, height / sHeight) * 0.9;
             let center = ctx.transformedPoint(width / 2, height / 2);
@@ -600,8 +768,12 @@ class StageView extends EventTarget {
     }
 
     /** Uses this canvas to measure some text for you thank you very much */
-    measureText(fontFamily, fontSize, fontWeight, text){
+    measureText(fontFamily, fontSize, fontWeight, text) {
         this.ctx.font = `normal normal ${fontWeight} ${fontSize} ${fontFamily}`;
         return this.ctx.measureText(text).width;
+    }
+
+    inRadius(pt, center, radius) {
+        return Math.abs(pt.x - center.x) ** 2 + Math.abs(pt.y - center.y) ** 2 < radius ** 2;
     }
 }

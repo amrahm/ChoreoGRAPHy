@@ -26,7 +26,6 @@
 
     <script src="util.js"></script>
     <script src="trackedContext.js"></script>
-    <script src="stageDrawing.js"></script>
     <script src="stageView.js"></script>
     <script src="timeline.js"></script>
     <script src="main.js"></script>
@@ -37,19 +36,22 @@
 <body>
     <main>
         <div id="stageDrawing">
-            <p id="drawingInstruction">draw your stage shape below</p>
-            <canvas id="drawingCanvas"></canvas>
-            <button id="confirmStage">done</button>
+            
         </div>
+        <p id="drawingInstruction">Draw your stage shape below:</p>
+        <button id="confirmStage" class="roundedBoxIconButton" disabled>
+            <div></div> <p>Done</p>
+        </button>
+
         <div class="n1">Choreo<span class="n2">GRAPH</span>y&thinsp;<span class="n3">™</span></div>
         <div id="groups">Groups</div>
         <input type="text" id="formationTitle"></div>
         <div id="dancerControls">
-            <button id="addDancer">
-                <div></div> Add Dancer
+            <button id="addDancer" class="roundedBoxIconButton">
+                <div></div> <p>Add Dancer</p>
             </button>
-            <button id="removeDancer" disabled>
-                <div></div> Remove Dancer
+            <button id="removeDancer" class="roundedBoxIconButton" disabled>
+                <div></div> <p>Delete Dancer</p>
             </button>
         </div>
         <div id="formationComments">
@@ -62,17 +64,17 @@
             <div id="timelinePaddingRight"></div>
         </div>
         <div id="timelineControls">
-                <button id="insertFormation">
-                    <div></div> Insert Formation
+                <button id="insertFormation" class="roundedBoxIconButton">
+                    <div></div> <p>Insert Formation</p>
                 </button>
-                <button id="deleteFormation" disabled>
-                    <div></div> Delete Formation
+                <button id="deleteFormation" class="roundedBoxIconButton" disabled>
+                    <div></div> <p>Delete Formation</p>
                 </button>
             </div>
         <div id="music">
             <p>Drag and drop music here, or click</p> <button id="musicUploadButton">Upload</button>
         </div>
-        <canvas id="stageView" oncontextmenu="return false;" tabindex="1"></canvas>
+        <canvas id="stageView" class="drawing" oncontextmenu="return false;" tabindex="1"></canvas>
         <div id="stageViewControls" oncontextmenu="return false;">
             <input id="zoomIn" type="image" src="graphics/PlusIcon.png" alt="Zoom In">
             <input id="zoomOut" type="image" src="graphics/MinusIcon.png" alt="Zoom Out">

@@ -8,53 +8,47 @@
     --down: 4px;
 }
 #timeline {
+    --timeline-color: rgb(238, 238, 238);
     justify-content: flex-start;
     position: relative;
     display: flex;
     overflow-x: scroll;
     margin-bottom: -5px;
     outline: solid 1px black;
-    background-color: rgb(238, 238, 238);
+    background-color: var(--timeline-color);
 }
+
+#timeline::-webkit-scrollbar {
+	height: 15px;
+	background-color: #F5F5F5;
+}
+#timeline::-webkit-scrollbar-thumb {
+	border-radius: 100px;
+	background-color: #666; /*The Devil's Color*/
+}
+
+#timeline::-webkit-scrollbar-track { background-color: var(--timeline-color); }
+
 #timelineControls {
     display: flex;
     flex-direction: column;
 }
 
-#insertFormation, #deleteFormation {
-    flex-grow: 1;
-    display: flex;
-    background-size: contain;
-    background-position: bottom left;
-    background-repeat: no-repeat;
-    background-color: rgb(247, 247, 247);
-    border: outset;
-    font: 100% var(--sans-font);
-    padding: 0;
-    text-shadow: 1px 1px 1px white, -1px 1px 1px white,
-                 1px -1px 1px white, -1px -1px 1px white;
-}
-#insertFormation > div , #deleteFormation > div { flex: 0 1 35%; }
+
+#insertFormation > div , #deleteFormation > div { flex: 1 2 30px; }
+#insertFormation > p , #deleteFormation > p { flex: 1 1 50%; }
 #insertFormation {
     background-image: url("graphics/InsertFormationIcon.png");
     margin-bottom: 10px;
 }
-#insertFormation:active {
-    color: hsl(120, 100%, 33%);
-    border: inset;    
-}
-#deleteFormation {
-    background-image: url("graphics/RemoveFormationIcon.png");
-}
+#insertFormation:active { color: hsl(106, 95%, 43%); }
+#deleteFormation { background-image: url("graphics/RemoveFormationIcon.png"); }
 #deleteFormation:disabled {
     background-image: url("graphics/RemoveFormationIconDisabled.png");
     color: rgb(221, 221, 221);
     text-shadow: 0 0 2px black;
 }
-#deleteFormation:active {
-    color: hsl(0, 100%, 32%);
-    border: inset;    
-}
+#deleteFormation:active { color: hsl(0, 100%, 32%); }
 
 #addFormation {
     order: 999999;
