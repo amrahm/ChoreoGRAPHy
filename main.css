@@ -1,16 +1,6 @@
 @import url('https://fonts.googleapis.com/css?family=Comfortaa|Julius+Sans+One');
 :root { /* Global variables */
     --sans-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
-    --grid-template: 
-        [row1-start] ". . . . . . . ." 10px [row1-end]
-        [row2-start] "header header formationTitle formationTitle formationTitle . . ." 2.5em [row2-end]
-        [row3-start] "groups . canvas canvas canvas . dancerControls ." 120px [row3-end]
-        [row4-start] "groups . canvas canvas canvas . formationComments ." auto [row4-end]
-        [row5-start] "groups . canvas canvas canvas . formationComments ." 100px [row5-end]
-        [row6-start] "stageLegend . timeline timeline timeline . timelineControls ." calc(var(--slide-height) + var(--extra)) [row6-end]
-        [row7-start] "music music music music music music music music" 50px [row7-end]
-        / 5fr 20px 8fr 8fr 8fr 20px 5fr 20px;
 }
 
 html, body, main, #stageDrawing {
@@ -22,8 +12,17 @@ main {
     display: grid;
     justify-content: stretch;
     align-items: stretch;
-    grid-gap: 10px 0px;
+    grid-gap: 10px 0;
     grid-template: var(--grid-template);
+    --grid-template: 
+        [row1-start] ". . . . . . . ." 10px [row1-end]
+        [row2-start] "header header formationTitle formationTitle formationTitle . . ." 2.5em [row2-end]
+        [row3-start] "groups . canvas canvas canvas . dancerControls ." 120px [row3-end]
+        [row4-start] "groups . canvas canvas canvas . formationComments ." auto [row4-end]
+        [row5-start] "groups . canvas canvas canvas . formationComments ." 100px [row5-end]
+        [row6-start] "stageLegend . timeline timeline timeline . timelineControls ." calc(var(--slide-height) + var(--extra)) [row6-end]
+        [row7-start] "music music music music music music music music" 50px [row7-end]
+        / 5fr 20px 8fr 8fr 8fr 20px 5fr 20px;
 }
 
 #stageDrawing {

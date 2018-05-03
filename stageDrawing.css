@@ -2,19 +2,89 @@
     background: rgb(220, 220, 220);
 }
 
-#confirmStage {
-    grid-area: formationComments;
+#stageDrawingControls {
+    grid-area: 3 / 7 / 6 / 8;
     justify-self: stretch;
-    align-self: flex-end;
+    /* background: violet; */
+    z-index: 1000;
+    display: grid;
+    grid-gap: 20px 0;
+    grid-template: var(--grid-template);
+    --grid-template:
+        [row1-start] "undo . redo" min-content [row1-end]
+        [row2-start] ". . ." auto [row2-end]
+        [row3-start] "showGrid showGrid showGrid" min-content [row3-end]
+        [row4-start] "gridScale gridScale gridScale" min-content [row4-end]
+        [row5-start] "snapToGrid snapToGrid snapToGrid" min-content [row5-end]
+        [row6-start] "showDancerSize showDancerSize showDancerSize" min-content [row6-end]
+        [row7-start] ". . ." auto [row7-end]
+        [row8-start] "done done done" min-content [row8-end]
+        / 1fr 1fr 1fr;
+}
+
+.gridOption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    align-content: center;
+    align-self: center;
+    justify-self: flex-end;
+    justify-content: flex-end;
+    text-align: right;
+}
+.gridOption > p {
+    margin: 0 10px 0 0;
+}
+
+.checkbox { position: relative; }
+.checkbox label {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #777;
+    border-radius: 4px;
+    box-shadow: inset 1px 2px 4px rgba(0, 0, 0, 0.5),
+                inset -1px -1px 2px rgba(0, 0, 0, 0.3);
+}
+.checkbox > label:after {
+    content: '✓';
+    position: absolute;
+    top: -2.5px;
+    left: 2.5px;
+    color: white;
+    font: 1.2em var(--sans-font);
+    opacity: 0;
+}
+.checkbox > label:hover::after { opacity: 0.3; }
+.checkbox > input[type=checkbox] { visibility: hidden; }
+.checkbox > input[type=checkbox]:checked + label:after { opacity: 1; }
+
+#showGrid { grid-area: showGrid; }
+#gridScale { grid-area: gridScale; }
+#gridScale > input {
+    width: 2em;
+    font: 1em var(--sans-font);
+    text-align: right;
+    padding-right: 5px;
+}
+#snapToGrid { grid-area: snapToGrid; }
+#showDancerSize { grid-area: showDancerSize; }
+
+#confirmStage {
+    grid-area: done;
     height: 100px;
+    width: 100%;
     background-image: url("graphics/DoneIcon.png");
     align-content: flex-end;
-    z-index: 1000;
 }
 #confirmStage > div { flex: 1 2 50px; }
 #confirmStage > p { flex: 1 1 50%; }
 #confirmStage:active { color: hsl(106, 95%, 43%); }
 #confirmStage:disabled { background-image: url("graphics/DoneIconDisabled.png"); }
+#confirmStage:active:disabled { color: hsl(0, 100%, 32%); }
 
 #drawingInstruction {
     background-color: white;

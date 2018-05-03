@@ -36,22 +36,58 @@
 <body>
     <main>
         <div id="stageDrawing">
-            
+
         </div>
         <p id="drawingInstruction">Draw your stage shape below:</p>
-        <button id="confirmStage" class="roundedBoxIconButton" disabled>
-            <div></div> <p>Done</p>
-        </button>
+        <div id="stageDrawingControls">
+            <div id="showGrid" class="gridOption">
+                <p>Show Grid:</p> 
+                <div class="checkbox">
+                    <input type="checkbox" id="showGridCheck" name="Show Grid" checked />
+                    <label for="showGridCheck"></label>
+                </div>
+            </div>
+            <div id="gridScale" class="gridOption">
+                <p>Grid Scale:</p> <input type="text" value="1" id="gridScaleValue">
+                <select name="units" id="gridScaleUnits">
+                    <option value="value1" selected>dancers</option> 
+                    <option value="value2">in</option>
+                    <option value="value3">ft</option>
+                    <option value="value4">cm</option>
+                    <option value="value5">m</option>
+                  </select>
+            </div>
+            <div id="snapToGrid" class="gridOption">
+                <p>Snap to Grid:</p>
+                <div class="checkbox">
+                    <input type="checkbox" id="snapToGridCheck" name="Snap to Grid" checked />
+                    <label for="snapToGridCheck"></label>
+                </div>
+            </div>
+            <div id="showDancerSize" class="gridOption">
+                <p>Show Dancer Size:</p>
+                <div class="checkbox">
+                    <input type="checkbox" id="showDancerSizeCheck" name="Show Dancer Size" checked />
+                    <label for="showDancerSizeCheck"></label>
+                </div>
+            </div>
+            <button id="confirmStage" class="roundedBoxIconButton" disabled>
+                <p>Done</p>
+            </button>
+        </div>
 
         <div class="n1">Choreo<span class="n2">GRAPH</span>y&thinsp;<span class="n3">™</span></div>
         <div id="groups">Groups</div>
-        <input type="text" id="formationTitle"></div>
+        <input type="text" id="formationTitle">
+        </div>
         <div id="dancerControls">
             <button id="addDancer" class="roundedBoxIconButton">
-                <div></div> <p>Add Dancer</p>
+                <div></div>
+                <p>Add Dancer</p>
             </button>
             <button id="removeDancer" class="roundedBoxIconButton" disabled>
-                <div></div> <p>Delete Dancer</p>
+                <div></div>
+                <p>Delete Dancer</p>
             </button>
         </div>
         <div id="formationComments">
@@ -60,19 +96,24 @@
         </div>
         <div id="timeline" oncontextmenu="return false;">
             <div id="timelinePaddingLeft"></div>
-            <button id="addFormation"><img src="graphics/AddFormationIcon.png" alt="Add Formation"></button>
+            <button id="addFormation">
+                <img src="graphics/AddFormationIcon.png" alt="Add Formation">
+            </button>
             <div id="timelinePaddingRight"></div>
         </div>
         <div id="timelineControls">
-                <button id="insertFormation" class="roundedBoxIconButton">
-                    <div></div> <p>Insert Formation</p>
-                </button>
-                <button id="deleteFormation" class="roundedBoxIconButton" disabled>
-                    <div></div> <p>Delete Formation</p>
-                </button>
-            </div>
+            <button id="insertFormation" class="roundedBoxIconButton">
+                <div></div>
+                <p>Insert Formation</p>
+            </button>
+            <button id="deleteFormation" class="roundedBoxIconButton" disabled>
+                <div></div>
+                <p>Delete Formation</p>
+            </button>
+        </div>
         <div id="music">
-            <p>Drag and drop music here, or click</p> <button id="musicUploadButton">Upload</button>
+            <p>Drag and drop music here, or click</p>
+            <button id="musicUploadButton">Upload</button>
         </div>
         <canvas id="stageView" class="drawing" oncontextmenu="return false;" tabindex="1"></canvas>
         <div id="stageViewControls" oncontextmenu="return false;">

@@ -1,3 +1,4 @@
+//TODO: Show stage dimensions in chosen units above the done button
 //TODO: Remove music bar unless we have time
 //TODO: If have time, @ tags in formation comments
 //TODO: Make instructions box collapsible
@@ -14,6 +15,12 @@ Util.events(document, {
         dom.root = Util.one("html");
         dom.sansFont = Util.getStyleValue(dom.root, "--sans-font");
         dom.stageDrawing = Util.one("#stageDrawing");
+        dom.stageDrawingControls = Util.one("#stageDrawingControls");
+        dom.gridScaleValue = Util.one("#gridScaleValue"); //TODO: Add events
+        dom.gridScaleUnits = Util.one("#gridScaleUnits"); //TODO: Add events
+        dom.showGrid = Util.one("#showGridCheck");
+        dom.snapToGrid = Util.one("#snapToGridCheck");
+        dom.showDancerSize = Util.one("#showDancerSizeCheck");
         dom.confirmStage = Util.one("#confirmStage");
         dom.drawingInstruction = Util.one("#drawingInstruction");
         dom.stageViewControls = Util.one("#stageViewControls");
@@ -41,6 +48,9 @@ Util.events(document, {
 
         stageView.ctx = getTrackedContext(dom.stageView.getContext('2d', { alpha: false }));
 
+        dom.showGrid.addEventListener("click", () => stageView.showGridPress(dom.showGrid.checked));
+        dom.snapToGrid.addEventListener("click", () => stageView.snapToGridPress(dom.snapToGrid.checked));
+        dom.showDancerSize.addEventListener("click", () => stageView.showDancerSizePress(dom.showDancerSize.checked));
         dom.confirmStage.addEventListener("click", () => stageView.doneDrawing());
         dom.addDancer.addEventListener("click", () => stageView.addDancer());
         dom.removeDancer.addEventListener("click", () => stageView.removeDancer());

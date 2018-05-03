@@ -2,8 +2,6 @@
 //TODO: Undo/Redo
 //TODO: Front view
 //TODO: CTRL/Shift for selecting multiple, del for removing dancer
-//TODO: Some way of setting this.stageWidth in the UI
-//TODO: Don't let click done till done
 
 const faceRotation = false;
 const dancerSize = 20; //radius of dancer, in centimeters
@@ -27,6 +25,11 @@ class StageView extends EventTarget {
         this.closed = false;
         this.points = [];
         this.currPoint = 0;
+        this.showGrid = true;
+        this.gridScale = dancerSize * 2;
+        this.snapToGrid = true;
+        this.showDancerSize = true;
+        this.currScale = 1;
 
         //:::Stage Viewing
         this.pageDrag = null; //dragging page
@@ -44,24 +47,8 @@ class StageView extends EventTarget {
 
         //:::STAGE
         this.stage = new Path2D();
-        this.bounds = { minX: 100000000, maxX: 0, minY: 1000000000000, maxY: 0 }; //pixel size of stage
+        this.bounds = { minX: 0, maxX: 0, minY: 0, maxY: 0 }; //pixel size of stage
         this.stageWidth = 0; //estimation of real stage width, in centimeters
-
-
-
-        //---TESTING---
-        // let sW = 100;
-        // let sH = 70;
-        // this.stage = new Path2D();
-        // this.stage.moveTo(0, 0);
-        // this.stage.lineTo(0, sH * 2 / 3);
-        // this.stage.lineTo(sW / 3, sH);
-        // this.stage.lineTo(sW * 2 / 3, sH);
-        // this.stage.lineTo(sW, sH * 2 / 3);
-        // this.stage.lineTo(sW, 0);
-        // this.stage.closePath();
-        // this.stageBounds = { maxX: sW, maxY: sH };
-        // this.stageWidth = 500;
     }
 
     /** Respond to window resize so that drawings don't get distorted. */
@@ -90,8 +77,6 @@ class StageView extends EventTarget {
                 parseInt(Util.getStyleValue(ctx.canvas, "height")));
         }
 
-
-
         if (dom.drawingMode) {
             ctx.save();
             ctx.setTransform();
@@ -99,6 +84,7 @@ class StageView extends EventTarget {
             ctx.fillRect(0, 0, this.width, this.height);
             ctx.restore();
 
+            let sBoxSize = (boxSize + boxSize / this.currScale) / 2;
             if (this.firstPoint !== null) {
                 ctx.strokeStyle = "rgb(0, 0, 0)";
                 let stage = new Path2D();
@@ -113,24 +99,25 @@ class StageView extends EventTarget {
                 ctx.strokeStyle = "rgb(0, 0, 0)";
                 ctx.stroke(this.stage);
 
+                ctx.lineWidth = 1 / this.currScale;
                 if (!this.closed) {
                     ctx.beginPath();
-                    ctx.arc(this.firstPoint.x, this.firstPoint.y, boxSize, 0, Math.PI * 2);
+                    ctx.arc(this.firstPoint.x, this.firstPoint.y, sBoxSize, 0, Math.PI * 2);
                     ctx.fillStyle = this.currPoint == 0 ? "rgb(66, 134, 244)" : "rgb(200, 200, 200)";
                     ctx.fill();
                     ctx.strokeStyle = "rgb(0, 0, 0)";
                     ctx.stroke();
                 }
                 if (this.points.length > 0 && this.currPoint != 0 || this.closed) {
-                    console.log(this.points.length, this.currPoint);
                     let currPt = this.points[this.currPoint];
                     ctx.fillStyle = "rgb(66, 134, 244)";
-                    ctx.fillRect(currPt.x - boxSize / 2, currPt.y - boxSize / 2, boxSize, boxSize);
+                    ctx.fillRect(currPt.x - sBoxSize / 2, currPt.y - sBoxSize / 2, sBoxSize, sBoxSize);
                 }
                 this.points.forEach(point => {
                     if (this.closed || point !== this.firstPoint)
-                        ctx.strokeRect(point.x - boxSize / 2, point.y - boxSize / 2, boxSize, boxSize);
+                        ctx.strokeRect(point.x - sBoxSize / 2, point.y - sBoxSize / 2, sBoxSize, sBoxSize);
                 });
+                ctx.lineWidth = 1;
             }
             if (this.closed) {
                 this.stage.closePath();
@@ -138,30 +125,25 @@ class StageView extends EventTarget {
                 ctx.stroke(this.stage);
                 ctx.fillStyle = "rgb(66, 134, 244)";
                 let currPt = this.points[this.currPoint];
-                ctx.fillRect(currPt.x - boxSize / 2, currPt.y - boxSize / 2, boxSize, boxSize);
+                ctx.fillRect(currPt.x - sBoxSize / 2, currPt.y - sBoxSize / 2, sBoxSize, sBoxSize);
             }
+        } else {
+            ctx.save();
+            ctx.setTransform();
+            ctx.fillStyle = "rgb(180, 180, 180)";
+            ctx.fillRect(0, 0, this.width, this.height);
+            ctx.restore();
 
-            return; //Skip everything below
-        }
-
-        ctx.save();
-        ctx.setTransform();
-        ctx.fillStyle = "rgb(200, 200, 200)";
-        ctx.fillRect(0, 0, this.width, this.height);
-        ctx.restore();
-
-        //:::STAGE
-        if (this.stage != null) {
+            //:::STAGE
             ctx.save();
             let scalar = this.stageWidth / this.bounds.maxX;
             ctx.scale(scalar, scalar);
-
             ctx.shadowBlur = 20;
             ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
             ctx.fillStyle = "rgb(255, 250, 245)";
             ctx.fill(this.stage);
-
             ctx.restore();
+
         }
 
         //:::DANCERS
@@ -321,7 +303,32 @@ class StageView extends EventTarget {
             this.ctx.strokeStyle = "rgb(130, 166, 255)";
             this.ctx.stroke(this.selectionBox);
         }
+
+        //:::GRID
+        if (this.showGrid) {
+            ctx.lineWidth = 1 / this.currScale;
+            ctx.strokeStyle = "rgb(200, 200, 200)";
+            ctx.beginPath();
+
+            let pt = ctx.transformedPoint(0, 0);
+            let maxpt = ctx.transformedPoint(this.width, this.height);
+            for (let x = Math.ceil(pt.x / this.gridScale) * this.gridScale;
+                x < maxpt.x; x += this.gridScale) {
+                ctx.moveTo(x, pt.y);
+                ctx.lineTo(x, maxpt.y);
+            }
+            for (let y = Math.ceil(pt.y / this.gridScale) * this.gridScale;
+                y < maxpt.y; y += this.gridScale) {
+                ctx.moveTo(pt.x, y);
+                ctx.lineTo(maxpt.x, y);
+            }
+
+            ctx.stroke();
+            ctx.lineWidth = 1;
+        }
     }
+
+
 
     addDancer() {
         let findSafe = (pt, formation, yOth = 1) => {
@@ -383,38 +390,56 @@ class StageView extends EventTarget {
         dom.removeDancer.disabled = true;
     }
 
+    showGridPress(checked) {
+        this.showGrid = checked;
+        this.draw();
+    }
+    snapToGridPress(checked) {
+        this.snapToGrid = checked;
+        //TODO: stuff
+    }
+    showDancerSizePress(checked) {
+        this.showDancerSize = checked;
+        this.draw();
+    }
 
     doneDrawing() {
         dom.stageDrawing.style.display = "none";
-        dom.confirmStage.style.display = "none";
+        dom.stageDrawingControls.style.display = "none";
         dom.drawingInstruction.style.display = "none";
         dom.stageView.classList.remove("drawing");
         dom.drawingMode = false;
-        this.points.forEach(point => this.checkBounds(point));
+        this.showGrid = false;
+        this.checkBounds();
+        this.stageWidth = this.bounds.maxX - this.bounds.minX;
         let shiftX = -this.bounds.minX;
         let shiftY = -this.bounds.minY;
         this.bounds = { maxX: this.bounds.maxX + shiftX, maxY: this.bounds.maxY + shiftY };
         let stage = new Path2D();
-        this.points.forEach(point => {
-            stage.lineTo(point.x + shiftX, point.y + shiftY);
-        });
+        this.points.forEach(point => stage.lineTo(point.x + shiftX, point.y + shiftY));
         stage.closePath();
         this.stage = stage;
-        this.stageWidth = 500;
         this.resetView();
         timeline.insertFormation();
     }
 
+    /** Checks all the points and sets the bounds of the stage based on it */
     checkBounds(point) { //FIXME: first point isn't taken into account for some reason (esp. if at bottom)
-        if (point.x < this.bounds.minX)
-            this.bounds.minX = point.x;
-        else if (point.x > this.bounds.maxX)
-            this.bounds.maxX = point.x;
+        this.bounds = { //start it so that it will definitely set all four values
+            minX: Number.MAX_SAFE_INTEGER, maxX: -Number.MAX_SAFE_INTEGER,
+            minY: Number.MAX_SAFE_INTEGER, maxY: -Number.MAX_SAFE_INTEGER
+        };
+        this.points.forEach(point => {
+            if (point.x < this.bounds.minX)
+                this.bounds.minX = point.x;
+            else if (point.x > this.bounds.maxX)
+                this.bounds.maxX = point.x;
 
-        if (point.y < this.bounds.minY)
-            this.bounds.minY = point.y;
-        else if (point.y > this.bounds.maxY)
-            this.bounds.maxY = point.y;
+            if (point.y < this.bounds.minY)
+                this.bounds.minY = point.y;
+            else if (point.y > this.bounds.maxY)
+                this.bounds.maxY = point.y;
+        });
     }
 
     mousedown(mouse, buttons) {
@@ -425,14 +450,16 @@ class StageView extends EventTarget {
         this.renamingStart = false;
         if (buttons === 1) { //left click
             if (dom.drawingMode) { //:::DRAWING
-                for (let i = 0; i < this.points.length; i++) {
+                let sBoxSize = (boxSize + boxSize / this.currScale) / 2;
+                for (let i = 0; i < this.points.length; i++) { //Check if selecting a handle
                     let point = this.points[i];
-                    if (this.inRadius(mouseT, point, boxSize)) {
-                        if (i === 0 && this.points.length > 2 && this.currPoint !== 0 && !this.closed) {
+                    if (this.inRadius(mouseT, point, sBoxSize)) {
+                        if (i === 0 && this.points.length > 2 && !this.closed &&
+                            this.currPoint === this.points.length - 1) {
                             this.closed = true;
                             dom.confirmStage.disabled = false;
                             this.currPoint = 0;
-                            return;
+                            this.draw();
                         }
                         dom.stageView.classList.remove("drawing");
                         this.mdMoving = true;
@@ -443,6 +470,13 @@ class StageView extends EventTarget {
 
                 if (this.points.length === 0) this.firstPoint = this.lastM;
                 this.mdDrawing = true;
+                if (this.points.length === 0) {
+                    this.firstPoint = this.lastM;
+                    this.points.push(this.lastM);
+                } else {
+                    //TODO: if closed, splice between currPoint and physically closest neighbor
+                    this.points.splice(++this.currPoint, 0, this.lastM);
+                }
                 this.draw();
 
                 return; //skip everything else
@@ -509,21 +543,19 @@ class StageView extends EventTarget {
         }
 
         if (dom.drawingMode) {
-            if (this.mdDrawing) {
+            if (this.mdDrawing || this.mdMoving) {
                 this.lastM = mouseT;
-                if (this.points.length === 0) this.firstPoint = mouseT;
-                this.draw();
-                return; //skip everything else
-            } else if (this.mdMoving) {
                 this.points[this.currPoint] = mouseT;
-                if (this.currPoint === 0) this.firstPoint = mouseT;
+                if (this.points.length === 1 || this.currPoint === 0) this.firstPoint = mouseT;
                 this.draw();
                 return; //skip everything else
             } else {
+                let sBoxSize = (boxSize + boxSize / this.currScale) / 2;
                 dom.stageView.classList.add("drawing");
                 this.points.forEach(point => {
-                    if (this.inRadius(mouseT, point, boxSize) &&
-                        (this.closed || this.points.length <= 2 || point !== this.firstPoint))
+                    if (this.inRadius(mouseT, point, sBoxSize) &&
+                        (this.closed || this.points.length <= 2 ||
+                            point !== this.firstPoint || this.currPoint !== this.points.length - 1))
                         dom.stageView.classList.remove("drawing");
                 });
             }
@@ -583,17 +615,7 @@ class StageView extends EventTarget {
     }
     mouseup() {
         if (!this.isDragging()) return;
-        if (dom.drawingMode && this.mdDrawing) {
-            if (this.points.length === 0) {
-                this.firstPoint = this.lastM;
-                this.points.push(this.lastM);
-            } else {
-                this.points.splice(++this.currPoint, 0, this.lastM);
-            }
-            this.draw();
-            this.mdDrawing = false;
-            return; //skip everything else
-        }
+        this.mdDrawing = false;
         this.mdMoving = false;
         this.dragging = null;
         this.rotating = null;
@@ -699,7 +721,6 @@ class StageView extends EventTarget {
                     dom.confirmStage.disabled = true;
                 }
                 this.firstPoint = this.points.length > 0 ? this.points[0] : null;
-                console.log(this.firstPoint);
                 this.draw();
             }
         }
@@ -738,6 +759,7 @@ class StageView extends EventTarget {
         this.ctx.translate(point.x, point.y);
         let factor = Math.pow(1.1, clicks);
         this.ctx.scale(factor, factor);
+        this.currScale *= factor;
         this.ctx.translate(-point.x, -point.y);
         this.draw();
     }
@@ -751,9 +773,11 @@ class StageView extends EventTarget {
             if (frames > 0) this.zoomAnim(frames - 1, clicksPerFrame * 0.7);
         });
     }
+    /** Resets the view of the canvas back to its initial settings */
     resetView(ctx = this.ctx, width = this.width, height = this.height) {
         ctx.setTransform(); //Set to defaults
-        if (this.stage != null) {
+        this.currScale = 1;
+        if (this.stage != null && !dom.drawingMode) {
             let scalar = this.stageWidth / this.bounds.maxX;
             let sWidth = this.bounds.maxX * scalar;
             let sHeight = this.bounds.maxY * scalar;
@@ -773,6 +797,7 @@ class StageView extends EventTarget {
         return this.ctx.measureText(text).width;
     }
 
+    /** Returns true iff point pt is within radius of point center */
     inRadius(pt, center, radius) {
         return Math.abs(pt.x - center.x) ** 2 + Math.abs(pt.y - center.y) ** 2 < radius ** 2;
     }
