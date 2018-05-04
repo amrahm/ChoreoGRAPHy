@@ -3,11 +3,10 @@
 //TODO: Front view
 //TODO: CTRL/Shift for selecting multiple, del for removing dancer
 
-const faceRotation = false;
-const dancerSize = 20; //radius of dancer, in centimeters
+const dancerRadius = 20; //radius of dancer, in centimeters
 const dancerFontSize = 25; //in px
 const boxSize = 10;
-const distThreshold = 30; //num pixels close that are considered close enough to close
+const distThreshold = 15; //num pixels close that are considered close enough to grid corner
 
 /** Implements the top and front stage views, with adding and removing dancers */
 class StageView extends EventTarget {
@@ -26,9 +25,9 @@ class StageView extends EventTarget {
         this.points = [];
         this.currPoint = 0;
         this.showGrid = true;
-        this.gridScale = dancerSize * 2;
+        this.gridScale = dancerRadius * 2;
         this.snapToGrid = true;
-        this.showDancerSize = true;
+        this.showDancerSize = false;
         this.currScale = 1;
 
         //:::Stage Viewing
@@ -48,7 +47,6 @@ class StageView extends EventTarget {
         //:::STAGE
         this.stage = new Path2D();
         this.bounds = { minX: 0, maxX: 0, minY: 0, maxY: 0 }; //pixel size of stage
-        this.stageWidth = 0; //estimation of real stage width, in centimeters
     }
 
     /** Respond to window resize so that drawings don't get distorted. */
@@ -77,7 +75,7 @@ class StageView extends EventTarget {
                 parseInt(Util.getStyleValue(ctx.canvas, "height")));
         }
 
-        if (dom.drawingMode) {
+        if (dom.drawingMode) { //:::STAGE DRAWING
             ctx.save();
             ctx.setTransform();
             ctx.fillStyle = "white";
@@ -135,135 +133,20 @@ class StageView extends EventTarget {
             ctx.restore();
 
             //:::STAGE
-            ctx.save();
-            let scalar = this.stageWidth / this.bounds.maxX;
-            ctx.scale(scalar, scalar);
             ctx.shadowBlur = 20;
             ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
             ctx.fillStyle = "rgb(255, 250, 245)";
             ctx.fill(this.stage);
-            ctx.restore();
-
         }
 
         //:::DANCERS
-        this.dancers.forEach(dancer => {
-            let pos = dancer.positions[formation];
-            let r = dancerSize;
-
-            //:::MAIN CIRCLE
-            if (this.dragging === dancer && ctx === this.ctx) {
-                ctx.shadowBlur = 20;
-                if (this.selected.indexOf(dancer) === -1)
-                    ctx.shadowColor = "black";
-                else
-                    ctx.shadowColor = "rgb(0, 56, 147)";
-            } else if (this.selected.indexOf(dancer) != -1 && ctx === this.ctx) {
-                ctx.shadowBlur = 40;
-                ctx.shadowColor = "rgb(43, 216, 0)";
-            } else {
-                ctx.shadowBlur = 0;
-            }
-            ctx.fillStyle = "rgb(60, 60, 60)";
-            ctx.beginPath();
-            ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            ctx.strokeStyle = "rgb(200, 200, 200)";
-            ctx.stroke();
-
-            //:::::::ROTATED STUFF:::::::
-            //:::FACE
-            ctx.save();
-            ctx.translate(pos.x, pos.y);
-            ctx.rotate(pos.angle);
-
-            ctx.fillStyle = "rgb(140, 140, 140)";
-            ctx.beginPath();
-            ctx.arc(0, 0, r, 0, Math.PI);
-            ctx.bezierCurveTo(-r * .4, r * .55, r * .4, r * .55, r, 0);
-            ctx.fill();
-            ctx.strokeStyle = "rgb(20, 20, 20)";
-            ctx.stroke();
-
-            //:::EYES
-            ctx.fillStyle = "rgb(250, 250, 250)";
-            ctx.beginPath();
-            ctx.arc(r * .45, r * .6, r / 5, 0, Math.PI * 2);
-            ctx.arc(-r * .45, r * .6, r / 5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "rgb(0, 0, 0)";
-            ctx.beginPath();
-            ctx.arc(r * .45, r * .65, r / 10, 0, Math.PI * 2);
-            ctx.arc(-r * .45, r * .65, r / 10, 0, Math.PI * 2);
-            ctx.fill();
-
-            //:::DRAG HANDLE part 1
-            if (faceRotation) {
-                dancer.rotateIcon = new Path2D();
-                dancer.rotateIcon.arc(0, 0, r, 0, Math.PI);
-                dancer.rotateIcon.bezierCurveTo(-r * .4, r * .55, r * .4, r * .55, r, 0);
-            }
-
-            //:::NAME
-            if (ctx === this.ctx) {
-                ctx.save();
-                let flipped = false;
-                if (pos.angle > Math.PI / 2 || pos.angle < -Math.PI / 2) {
-                    ctx.rotate(Math.PI);
-                    ctx.textBaseline = "middle"
-                    flipped = true;
-                } else {
-                    ctx.textBaseline = "alphabetic baseline"
-                }
-                let size = dancerFontSize;
-                ctx.font = `normal normal 700 ${size}px ${dom.sansFont}`;
-                ctx.textAlign = "center";
-                let smaller = false;
-                let width = ctx.measureText(dancer.name).width + 6;
-                if (this.renaming !== dancer && this.hovering !== dancer &&
-                    !(this.selected.length === 1 && this.selected.indexOf(dancer) != -1)) {
-                    if (r / width * 2 < 1) {
-                        size *= r / width * 2;
-                        ctx.font = `normal normal 700 ${size}px ${dom.sansFont}`;
-                        width = ctx.measureText(dancer.name).width + 6;
-                    }
-                    smaller = true;
-                }
-
-                let height = size;
-                let offset = flipped ? -height / 2 : -height + height / 8;
-                if (this.renamingStart && this.renaming === dancer) {
-                    this.ctx.fillStyle = "rgba(130, 166, 255, .5)";
-                    ctx.fillRect(-width / 2, offset, width, height);
-                } else if (this.renaming === dancer) {
-                    this.ctx.fillStyle = "rgba(200, 186, 160, .5)";
-                    ctx.fillRect(-width / 2, offset, width, height);
-                }
-
-                ctx.strokeStyle = "rgb(0, 0, 0)";
-                if (!smaller) {
-                    ctx.strokeText(dancer.name, .5, .5);
-                    ctx.strokeText(dancer.name, -.5, .5);
-                    ctx.strokeText(dancer.name, .5, -.5);
-                    ctx.strokeText(dancer.name, -.5, -.5);
-                } else {
-                    ctx.strokeText(dancer.name, 0, 0);
-                }
-                ctx.fillStyle = "rgb(255, 255, 255)";
-                ctx.fillText(dancer.name, 0, 0);
-                ctx.restore();
-            }
-
-            ctx.restore();
-        });
+        this.dancers.forEach(dancer => this.drawDancer(ctx, dancer, formation));
 
         //:::DRAG HANDLE part 2
-        if (ctx === this.ctx && !faceRotation) {
-
+        if (ctx === this.ctx) {
             this.selected.forEach(dancer => {
                 let pos = dancer.positions[formation];
-                let r = dancerSize;
+                let r = dancerRadius;
                 ctx.save();
                 ctx.translate(pos.x, pos.y);
                 ctx.rotate(pos.angle);
@@ -286,9 +169,6 @@ class StageView extends EventTarget {
                 dancer.rotateIcon.lineTo(r * 0.5, r * 2.1);
                 dancer.rotateIcon.lineTo(-r * 0.5, r * 2.1);
                 dancer.rotateIcon.closePath();
-                // ctx.strokeStyle = "rgb(0, 0, 0)";
-                // ctx.stroke(dancer.rotateIcon);
-
                 ctx.restore();
             });
         }
@@ -326,9 +206,129 @@ class StageView extends EventTarget {
             ctx.stroke();
             ctx.lineWidth = 1;
         }
+
+        //:::DANCER SIZE EXAMPLE
+        if (dom.drawingMode && this.showDancerSize) {
+            let corner = ctx.transformedPoint(0, this.height);
+
+            let dancer = {
+                name: "Dancer",
+                positions: [{
+                    x: corner.x + dancerRadius * 1.4,
+                    y: corner.y - dancerRadius * 1.4,
+                    angle: 0
+                }]
+            };
+            this.drawDancer(ctx, dancer, 0, true);
+        }
     }
 
 
+    /** Draw a dancer at their position in the specified formation */
+    drawDancer(ctx, dancer, formation, isExample = false, r = dancerRadius) {
+        let pos = dancer.positions[formation];
+        ctx.save();
+        ctx.translate(pos.x, pos.y);
+        ctx.rotate(pos.angle);
+        //:::MAIN CIRCLE
+        if (this.dragging === dancer && ctx === this.ctx) {
+            ctx.shadowBlur = 20;
+            if (this.selected.indexOf(dancer) === -1)
+                ctx.shadowColor = "black";
+            else
+                ctx.shadowColor = "rgb(23, 116, 0)";
+        }
+        else if (this.selected.indexOf(dancer) != -1 && ctx === this.ctx) {
+            ctx.shadowBlur = 40;
+            ctx.shadowColor = "rgb(43, 216, 0)";
+        }
+        else {
+            ctx.shadowBlur = 0;
+        }
+        ctx.fillStyle = isExample ? "rgba(60, 60, 60, 0.7)" : "rgb(60, 60, 60)";
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = "rgb(200, 200, 200)";
+        ctx.stroke();
+        if (!isExample) {
+            //:::FACE            
+            ctx.fillStyle = "rgb(140, 140, 140)";
+            ctx.beginPath();
+            ctx.arc(0, 0, r, 0, Math.PI);
+            ctx.bezierCurveTo(-r * .4, r * .55, r * .4, r * .55, r, 0);
+            ctx.fill();
+            ctx.strokeStyle = "rgb(20, 20, 20)";
+            ctx.stroke();
+            //:::EYES
+            ctx.fillStyle = "rgb(250, 250, 250)";
+            ctx.beginPath();
+            ctx.arc(r * .45, r * .6, r / 5, 0, Math.PI * 2);
+            ctx.arc(-r * .45, r * .6, r / 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "rgb(0, 0, 0)";
+            ctx.beginPath();
+            ctx.arc(r * .45, r * .65, r / 10, 0, Math.PI * 2);
+            ctx.arc(-r * .45, r * .65, r / 10, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        //:::NAME
+        if (ctx === this.ctx) {
+            ctx.save();
+            let flipped = false;
+            if (pos.angle > Math.PI / 2 || pos.angle < -Math.PI / 2) {
+                ctx.rotate(Math.PI);
+                ctx.textBaseline = "middle";
+                flipped = true;
+            }
+            else {
+                ctx.textBaseline = "alphabetic baseline";
+            }
+            let size = dancerFontSize;
+            ctx.font = `normal normal 700 ${size}px ${dom.sansFont}`;
+            ctx.textAlign = "center";
+            let smaller = false;
+            let width = ctx.measureText(dancer.name).width + 6;
+            if (this.renaming !== dancer && this.hovering !== dancer &&
+                !(this.selected.length === 1 && this.selected.indexOf(dancer) != -1)) {
+                if (r / width * 2 < 1) {
+                    size *= r / width * 2;
+                    ctx.font = `normal normal 700 ${size}px ${dom.sansFont}`;
+                    width = ctx.measureText(dancer.name).width + 6;
+                }
+                smaller = true;
+            }
+            let height = size;
+            let offset = flipped ? -height / 2 : -height + height / 8;
+            if (this.renamingStart && this.renaming === dancer) {
+                this.ctx.fillStyle = "rgba(130, 166, 255, .5)";
+                ctx.fillRect(-width / 2, offset, width, height);
+            }
+            else if (this.renaming === dancer) {
+                this.ctx.fillStyle = "rgba(200, 186, 160, .5)";
+                ctx.fillRect(-width / 2, offset, width, height);
+            }
+            ctx.strokeStyle = "rgb(0, 0, 0)";
+            if (!smaller && !isExample) {
+                ctx.strokeText(dancer.name, .5, .5);
+                ctx.strokeText(dancer.name, -.5, .5);
+                ctx.strokeText(dancer.name, .5, -.5);
+                ctx.strokeText(dancer.name, -.5, -.5);
+            } else {
+                ctx.strokeText(dancer.name, 0, 0);
+            }
+            ctx.fillStyle = "rgb(255, 255, 255)";
+            ctx.fillText(dancer.name, 0, 0);
+            if (isExample) {
+                let center = width / 2 - ctx.measureText("Size").width;
+                ctx.strokeText("Size", center, size);
+                ctx.fillText("Size", center, size);
+            }
+            ctx.restore();
+        }
+        ctx.restore();
+    }
 
     addDancer() {
         let findSafe = (pt, formation, yOth = 1) => {
@@ -337,10 +337,10 @@ class StageView extends EventTarget {
                 safe = true;
                 this.dancers.forEach(dancer => {
                     let pos = dancer.positions[formation];
-                    if (this.inRadius(pt, pos, dancerSize * 2)) {
+                    if (this.inRadius(pt, pos, dancerRadius * 2)) {
                         safe = false;
-                        pt.x += dancerSize * (Math.random() < 0.5 ? -1 : 1);
-                        pt.y += dancerSize * (Math.random() < 0.5 ? -1 : yOth);
+                        pt.x += dancerRadius * (Math.random() < 0.5 ? -1 : 1);
+                        pt.y += dancerRadius * (Math.random() < 0.5 ? -1 : yOth);
                     }
                 });
             } while (!safe);
@@ -359,7 +359,7 @@ class StageView extends EventTarget {
                 continue;
             }
             if (otherPt == null) //try and keep it the same for all other slides if possible
-                otherPt = this.ctx.transformedPoint(this.width / 2, dancerSize);
+                otherPt = this.ctx.transformedPoint(this.width / 2, dancerRadius);
             findSafe(otherPt, i, 0);
             pos.push({ x: otherPt.x, y: otherPt.y, angle: 0 });
         }
@@ -390,16 +390,36 @@ class StageView extends EventTarget {
         dom.removeDancer.disabled = true;
     }
 
-    showGridPress(checked) {
-        this.showGrid = checked;
+    showGridPress() {
+        this.showGrid = dom.showGrid.checked;
+        if (!this.showGrid) {
+            dom.snapToGrid.disabled = true;
+            dom.gridScaleValue.disabled = true;
+            dom.gridScaleUnits.disabled = true;
+            dom.gridScaleDiv.classList.add("disabled");
+            dom.snapToGridDiv.classList.add("disabled");
+        } else {
+            dom.snapToGrid.disabled = false;
+            dom.gridScaleValue.disabled = false;
+            dom.gridScaleUnits.disabled = false;
+            dom.gridScaleDiv.classList.remove("disabled");
+            dom.snapToGridDiv.classList.remove("disabled");
+        }
         this.draw();
     }
-    snapToGridPress(checked) {
-        this.snapToGrid = checked;
-        //TODO: stuff
+    gridScaleChange() {
+        let val = dom.gridScaleValue.value;
+        if (isNaN(val) || val <= 0) {
+            dom.gridScaleValue.classList.add("invalid");
+            return;
+        }
+        dom.gridScaleValue.classList.remove("invalid");
+        this.gridScale = val * dom.gridScaleUnits.value;
+        this.draw();
     }
-    showDancerSizePress(checked) {
-        this.showDancerSize = checked;
+    snapToGridPress() { this.snapToGrid = dom.snapToGrid.checked; }
+    showDancerSizePress() {
+        this.showDancerSize = dom.showDancerSize.checked;
         this.draw();
     }
 
@@ -411,7 +431,6 @@ class StageView extends EventTarget {
         dom.drawingMode = false;
         this.showGrid = false;
         this.checkBounds();
-        this.stageWidth = this.bounds.maxX - this.bounds.minX;
         let shiftX = -this.bounds.minX;
         let shiftY = -this.bounds.minY;
         this.bounds = { maxX: this.bounds.maxX + shiftX, maxY: this.bounds.maxY + shiftY };
@@ -424,25 +443,31 @@ class StageView extends EventTarget {
     }
 
     /** Checks all the points and sets the bounds of the stage based on it */
-    checkBounds(point) { //FIXME: first point isn't taken into account for some reason (esp. if at bottom)
+    checkBounds(point) {
         this.bounds = { //start it so that it will definitely set all four values
             minX: Number.MAX_SAFE_INTEGER, maxX: -Number.MAX_SAFE_INTEGER,
             minY: Number.MAX_SAFE_INTEGER, maxY: -Number.MAX_SAFE_INTEGER
         };
         this.points.forEach(point => {
-            if (point.x < this.bounds.minX)
-                this.bounds.minX = point.x;
-            else if (point.x > this.bounds.maxX)
-                this.bounds.maxX = point.x;
-
-            if (point.y < this.bounds.minY)
-                this.bounds.minY = point.y;
-            else if (point.y > this.bounds.maxY)
-                this.bounds.maxY = point.y;
+            if (point.x < this.bounds.minX) this.bounds.minX = point.x;
+            if (point.y < this.bounds.minY) this.bounds.minY = point.y;
+            if (point.x > this.bounds.maxX) this.bounds.maxX = point.x;
+            if (point.y > this.bounds.maxY) this.bounds.maxY = point.y;
         });
     }
 
+    /** Checks if a point should be snapped to grid */
+    checkSnap(point) {
+        if (!(this.showGrid && this.snapToGrid)) return point;
+        let snap = {
+            x: Math.round(point.x / this.gridScale) * this.gridScale,
+            y: Math.round(point.y / this.gridScale) * this.gridScale
+        }
+        return this.inRadius(point, snap, distThreshold) ? snap : point;
+    }
+
     mousedown(mouse, buttons) {
+        saveState(1);
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
         this.lastM = mouseT;
         this.dragged = false;
@@ -450,10 +475,13 @@ class StageView extends EventTarget {
         this.renamingStart = false;
         if (buttons === 1) { //left click
             if (dom.drawingMode) { //:::DRAWING
+                let sPoint = this.checkSnap(this.lastM);
+
                 let sBoxSize = (boxSize + boxSize / this.currScale) / 2;
                 for (let i = 0; i < this.points.length; i++) { //Check if selecting a handle
                     let point = this.points[i];
-                    if (this.inRadius(mouseT, point, sBoxSize)) {
+                    if (this.inRadius(sPoint, point, sBoxSize) ||
+                        this.inRadius(mouseT, point, sBoxSize)) {
                         if (i === 0 && this.points.length > 2 && !this.closed &&
                             this.currPoint === this.points.length - 1) {
                             this.closed = true;
@@ -468,53 +496,49 @@ class StageView extends EventTarget {
                     }
                 }
 
-                if (this.points.length === 0) this.firstPoint = this.lastM;
                 this.mdDrawing = true;
                 if (this.points.length === 0) {
-                    this.firstPoint = this.lastM;
-                    this.points.push(this.lastM);
+                    this.firstPoint = sPoint;
+                    this.points.push(sPoint);
                 } else {
-                    //TODO: if closed, splice between currPoint and physically closest neighbor
-                    this.points.splice(++this.currPoint, 0, this.lastM);
+                    let curr = this.points[this.currPoint];
+                    let next = this.points[this.currPoint === this.points.length - 1 ?
+                        0 : this.currPoint + 1];
+                    let prev = this.points[this.currPoint === 0 ?
+                        this.points.length - 1 : this.currPoint - 1];
+                    let dirC = { x: sPoint.x - curr.x, y: sPoint.y - curr.y };
+                    let dirN = { x: sPoint.x - next.x, y: sPoint.y - next.y };
+                    let dirP = { x: sPoint.x - prev.x, y: sPoint.y - prev.y };
+                    let dotNormal = (v1, v2) => {
+                        return (v1.x * v2.x + v1.y * v2.y) /
+                            (Math.sqrt(v1.x ** 2 + v1.y ** 2) * Math.sqrt(v2.x ** 2 + v2.y ** 2));
+                    };
+                    if (this.closed && dotNormal(dirC, dirN) > dotNormal(dirC, dirP))
+                        this.currPoint--; //add point in direction where mouse is
+                    this.points.splice(++this.currPoint, 0, sPoint);
                 }
                 this.draw();
 
                 return; //skip everything else
             }
 
-            if (!faceRotation) { //:::ROTATING
-                for (let i = this.selected.length - 1; i >= 0; i--) {
-                    let dancer = this.selected[i];
-                    let pos = dancer.positions[timeline.curr];
-                    this.ctx.save();
-                    this.ctx.translate(pos.x, pos.y);
-                    this.ctx.rotate(pos.angle);
-                    if (this.ctx.isPointInPath(dancer.rotateIcon, mouse.x, mouse.y)) {
-                        this.rotating = dancer;
-                        this.ctx.restore();
-                        return;
-                    }
+            for (let i = this.selected.length - 1; i >= 0; i--) { //:::ROTATING
+                let dancer = this.selected[i];
+                let pos = dancer.positions[timeline.curr];
+                this.ctx.save();
+                this.ctx.translate(pos.x, pos.y);
+                this.ctx.rotate(pos.angle);
+                if (this.ctx.isPointInPath(dancer.rotateIcon, mouse.x, mouse.y)) {
+                    this.rotating = dancer;
                     this.ctx.restore();
+                    return;
                 }
+                this.ctx.restore();
             }
             for (let i = this.dancers.length - 1; i >= 0; i--) { //:::MOVING
                 let dancer = this.dancers[i];
                 let pos = dancer.positions[timeline.curr];
-                if (faceRotation) {
-                    this.ctx.save();
-                    this.ctx.translate(pos.x, pos.y);
-                    this.ctx.rotate(pos.angle);
-                    if (this.ctx.isPointInPath(dancer.rotateIcon, mouse.x, mouse.y)) {
-                        this.moveDancerToEnd(dancer, i);
-                        if (this.selected.indexOf(dancer) === -1) this.selected = [];
-                        this.rotating = dancer;
-                        this.ctx.restore();
-                        return;
-                    }
-                    this.ctx.restore();
-                }
-
-                if (this.inRadius(mouseT, pos, dancerSize)) {
+                if (this.inRadius(mouseT, pos, dancerRadius)) {
                     this.moveDancerToEnd(dancer, i);
                     if (this.selected.indexOf(dancer) === -1) this.selected = [];
                     this.dragging = dancer;
@@ -529,24 +553,26 @@ class StageView extends EventTarget {
             this.pageDrag = this.lastM;
         }
     }
+
     mousemove(mouse) {
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
         if (this.lastM != null && Math.abs(this.lastM.x - mouseT.x) < 0.01 &&
             Math.abs(this.lastM.y - mouseT.y) < 0.01)
             return; //For some reason mousemove is being called on mousedown even when no movement???
 
-        if (this.pageDrag != null) {
+        if (this.pageDrag != null) { //:::PANNING/ZOOMING
             this.ctx.translate(mouseT.x - this.pageDrag.x, mouseT.y - this.pageDrag.y);
             dom.stageViewControls.style.display = "none";
             this.draw();
             return;
         }
 
-        if (dom.drawingMode) {
+        if (dom.drawingMode) { //:::DRAWING
+            this.lastM = mouseT;
+            let sPoint = this.checkSnap(this.lastM);
             if (this.mdDrawing || this.mdMoving) {
-                this.lastM = mouseT;
-                this.points[this.currPoint] = mouseT;
-                if (this.points.length === 1 || this.currPoint === 0) this.firstPoint = mouseT;
+                this.points[this.currPoint] = sPoint;
+                if (this.points.length === 1 || this.currPoint === 0) this.firstPoint = sPoint;
                 this.draw();
                 return; //skip everything else
             } else {
@@ -562,7 +588,7 @@ class StageView extends EventTarget {
         }
 
         this.dragged = true;
-        if (this.dragging != null) {
+        if (this.dragging != null) { //:::MOVING
             let pos = this.dragging.positions[timeline.curr];
             pos.x += mouseT.x - this.lastM.x;
             pos.y += mouseT.y - this.lastM.y;
@@ -575,7 +601,7 @@ class StageView extends EventTarget {
             });
             dom.stageViewControls.style.display = "none";
             this.draw();
-        } else if (this.rotating != null) {
+        } else if (this.rotating != null) { //:::ROTATING
             let pos = this.rotating.positions[timeline.curr];
             let oldA = pos.angle;
             let moveX = mouseT.x - pos.x;
@@ -589,16 +615,16 @@ class StageView extends EventTarget {
             });
             dom.stageViewControls.style.display = "none";
             this.draw();
-        } else if (this.selP1 != null) {
+        } else if (this.selP1 != null) { //:::BOX SELECT
             this.selP2 = mouseT;
             dom.stageViewControls.style.display = "none";
             this.draw();
         }
         let setHovering = false;
-        for (let i = this.dancers.length - 1; i >= 0; i--) { //backwards so top-most is chosen first
+        for (let i = this.dancers.length - 1; i >= 0; i--) { //:::HOVERING
             let dancer = this.dancers[i];
             let pos = dancer.positions[timeline.curr];
-            if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerSize) ** 2) {
+            if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerRadius) ** 2) {
                 this.moveDancerToEnd(dancer, i,
                     this.selected.indexOf(dancer) === -1 ? this.selected.length + 1 : 1);
                 this.hovering = dancer;
@@ -649,7 +675,7 @@ class StageView extends EventTarget {
         for (let i = this.dancers.length - 1; i >= 0; i--) {
             let dancer = this.dancers[i];
             let pos = dancer.positions[timeline.curr];
-            if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerSize) ** 2) {
+            if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerRadius) ** 2) {
                 this.selected.push(dancer);
                 this.rotating = null;
                 this.dragging = null;
@@ -682,7 +708,7 @@ class StageView extends EventTarget {
         for (let i = this.dancers.length - 1; i >= 0; i--) {
             let dancer = this.dancers[i];
             let pos = dancer.positions[timeline.curr];
-            if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerSize) ** 2) {
+            if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerRadius) ** 2) {
                 this.renaming = dancer;
                 this.renamingStart = true;
                 this.rotating = null;
@@ -711,15 +737,29 @@ class StageView extends EventTarget {
     }
     keydown(evt) {
         if (dom.drawingMode) {
-            if (evt.keyCode === 46 || evt.keyCode === 8) { //Del or Backspace
-                this.points.splice(this.currPoint--, 1);
-                if (this.currPoint < 0) {
-                    this.currPoint = this.closed ? this.points.length - 1 : 0;
-                }
+            if (evt.keyCode === 46 || evt.keyCode === 8) { //:::DELETE POINT (Del or Backspace)
+                if (this.points.length === 0) return;
+
+                let next = this.points[this.currPoint === this.points.length - 1 ?
+                    0 : this.currPoint + 1];
+                let prev = this.points[this.currPoint === 0 ?
+                    this.points.length - 1 : this.currPoint - 1];
+                if (Math.abs(next.x - this.lastM.x) ** 2 + Math.abs(next.y - this.lastM.y) ** 2 >
+                    Math.abs(prev.x - this.lastM.x) ** 2 + Math.abs(prev.y - this.lastM.y) ** 2)
+                    this.points.splice(this.currPoint--, 1);
+                else
+                    this.points.splice(this.currPoint, 1);
+
                 if (this.points.length <= 2 && this.closed) {
                     this.closed = false;
                     dom.confirmStage.disabled = true;
                 }
+
+                if (this.currPoint >= this.points.length)
+                    this.currPoint = this.closed ? 0 : this.points.length - 1;
+                if (this.currPoint < 0)
+                    this.currPoint = this.closed ? this.points.length - 1 : 0;
+
                 this.firstPoint = this.points.length > 0 ? this.points[0] : null;
                 this.draw();
             }
@@ -778,11 +818,8 @@ class StageView extends EventTarget {
         ctx.setTransform(); //Set to defaults
         this.currScale = 1;
         if (this.stage != null && !dom.drawingMode) {
-            let scalar = this.stageWidth / this.bounds.maxX;
-            let sWidth = this.bounds.maxX * scalar;
-            let sHeight = this.bounds.maxY * scalar;
-            ctx.translate((width - sWidth) / 2, (height - sHeight) / 2);
-            let zoomScalar = Math.min(width / sWidth, height / sHeight) * 0.9;
+            ctx.translate((width - this.bounds.maxX) / 2, (height - this.bounds.maxY) / 2);
+            let zoomScalar = Math.min(width / this.bounds.maxX, height / this.bounds.maxY) * 0.9;
             let center = ctx.transformedPoint(width / 2, height / 2);
             ctx.translate(center.x, center.y);
             ctx.scale(zoomScalar, zoomScalar);
@@ -800,5 +837,10 @@ class StageView extends EventTarget {
     /** Returns true iff point pt is within radius of point center */
     inRadius(pt, center, radius) {
         return Math.abs(pt.x - center.x) ** 2 + Math.abs(pt.y - center.y) ** 2 < radius ** 2;
+    }
+
+    /** Sets the context */
+    setContext(ctx) {
+        this.ctx = getTrackedContext(ctx);
     }
 }

@@ -5,20 +5,26 @@
 let dom = {}; //Holds DOM elements that don’t change, to avoid repeatedly querying the DOM
 let stageView = new StageView(); //load stageView code
 let timeline; //load stageView code, initialized when content loaded
+let undoStack = [];
+let redoStack = [];
 
 //Attaching events on document
 Util.events(document, {
     //runs at the end of start-up when the DOM is ready
     "DOMContentLoaded": () => {
         dom.drawingMode = true;
-        
+
         dom.root = Util.one("html");
+        dom.undo = Util.one("#undo");
+        dom.redo = Util.one("#redo");
         dom.sansFont = Util.getStyleValue(dom.root, "--sans-font");
         dom.stageDrawing = Util.one("#stageDrawing");
         dom.stageDrawingControls = Util.one("#stageDrawingControls");
-        dom.gridScaleValue = Util.one("#gridScaleValue"); //TODO: Add events
-        dom.gridScaleUnits = Util.one("#gridScaleUnits"); //TODO: Add events
+        dom.gridScaleDiv = Util.one("#gridScale");
+        dom.gridScaleValue = Util.one("#gridScaleValue");
+        dom.gridScaleUnits = Util.one("#gridScaleUnits");
         dom.showGrid = Util.one("#showGridCheck");
+        dom.snapToGridDiv = Util.one("#snapToGrid");
         dom.snapToGrid = Util.one("#snapToGridCheck");
         dom.showDancerSize = Util.one("#showDancerSizeCheck");
         dom.confirmStage = Util.one("#confirmStage");
@@ -40,17 +46,19 @@ Util.events(document, {
         dom.addFormation = Util.one("#addFormation");
         dom.insertFormation = Util.one("#insertFormation");
         dom.deleteFormation = Util.one("#deleteFormation");
-        dom.timelinePaddingLeft = Util.one("#timelinePaddingLeft");
-        dom.timelinePaddingRight = Util.one("#timelinePaddingRight");
         dom.formationCommentsBox = Util.one("#formationCommentsBox");
         dom.formationTitle = Util.one("#formationTitle");
 
 
-        stageView.ctx = getTrackedContext(dom.stageView.getContext('2d', { alpha: false }));
+        stageView.setContext(dom.stageView.getContext('2d', { alpha: false }));
 
-        dom.showGrid.addEventListener("click", () => stageView.showGridPress(dom.showGrid.checked));
-        dom.snapToGrid.addEventListener("click", () => stageView.snapToGridPress(dom.snapToGrid.checked));
-        dom.showDancerSize.addEventListener("click", () => stageView.showDancerSizePress(dom.showDancerSize.checked));
+        dom.undo.addEventListener("click", () => undo());
+        dom.redo.addEventListener("click", () => redo());
+        dom.showGrid.addEventListener("change", () => stageView.showGridPress());
+        dom.gridScaleValue.addEventListener("keyup", () => stageView.gridScaleChange());
+        dom.gridScaleUnits.addEventListener("change", () => stageView.gridScaleChange());
+        dom.snapToGrid.addEventListener("change", () => stageView.snapToGridPress());
+        dom.showDancerSize.addEventListener("change", () => stageView.showDancerSizePress());
         dom.confirmStage.addEventListener("click", () => stageView.doneDrawing());
         dom.addDancer.addEventListener("click", () => stageView.addDancer());
         dom.removeDancer.addEventListener("click", () => stageView.removeDancer());
@@ -128,9 +136,45 @@ function getCanvasCoords(canvas, evt) {
     let topLeft = Util.offset(canvas);
     return { x: evt.clientX - topLeft.left, y: evt.clientY - topLeft.top };
 }
-
 function formationTitleWidth() {
     let width = stageView.measureText(dom.sansFont,
         Util.getStyleValue(dom.formationTitle, "font-size"), "normal", dom.formationTitle.value);
     dom.formationTitle.style.setProperty("width", `${width + 40}px`);
+}
+function undo() {
+    let state = undoStack.pop();
+    redoStack.push(state);
+    stageView = state.stageView;
+    timeline = state.timeline;
+    stageView.draw();
+    console.log(undoStack);
+}
+function redo() {
+    let state = redoStack.pop();
+    undoStack.push(state);
+    stageView = state.stageView;
+    timeline = state.timeline;
+}
+
+/** Save the state of an object before modifiying it so it can be undone
+ * @param {number} stateNum 0 = save all, 1 = save stageView, 2 = save timeline
+ */
+function saveState(stateNum = 0) {
+    let state = {};
+
+    if (stateNum === 0 || stateNum === 1) {
+        state.stageView = JSON.parse(JSON.stringify(stageView));
+    } else {
+        state.stageView = stageView;
+    }
+
+    if (stateNum === 0 || stateNum === 2) {
+        state.timeline = JSON.parse(JSON.stringify(timeline));
+    } else {
+        state.timeline = timeline;
+    }
+
+    undoStack.push(state);
+    redoStack = []; //Remove this line for non-linear history?
+    console.log(undoStack);
 }
