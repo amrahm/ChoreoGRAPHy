@@ -66,10 +66,19 @@ main {
 }
 
 #groups {
+    font: 1.2em var(--sans-font);
     grid-area: groups;
-    border: dashed 1px black;
-    border-radius: 10px;
     text-align: center;
+}
+
+#groupsList {
+    --c: rgb(247, 247, 247);
+
+    border: solid 1px black;
+    text-align: center;
+    height: 90%;
+    font-size: small;
+    background-color: var(--c);
 }
 #formationTitle {
     grid-area: formationTitle;
@@ -158,6 +167,40 @@ textarea {
     text-align: center;
     padding-bottom: 4px;
     background-color: ghostwhite;
+}
+
+#addGroup{
+    --c: rgb(247, 247, 247);
+    font-family: Consolas;
+    border: none;
+    background-color: var(--c);
+    color: green;
+    font-size: 4em;
+}
+#addGroup:active, .deleteGroup:active {
+    border: inset 1px;
+}
+#addGroup:disabled, {
+    color: gray;
+}
+.deleteGroup{
+    --c: rgb(247, 247, 247);
+    font-family: Consolas;
+    border: none;
+    background-color: transparent;
+    color: red;
+    font-size: 1em;
+    font-weight: bold
+}
+
+.groupIcon {
+    background: whitesmoke;
+    border: 1px solid gray;
+    padding: 10px;
+}
+
+.groupIcon:hover {
+    background: deepskyblue;
 }
 
 #timeline { grid-area: timeline; }

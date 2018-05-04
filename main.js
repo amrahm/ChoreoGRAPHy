@@ -5,7 +5,8 @@
 let dom = {}; //Holds DOM elements that don’t change, to avoid repeatedly querying the DOM
 let stageView = new StageView(); //load stageView code
 let timeline; //load stageView code, initialized when content loaded
-
+let groupsView = new GroupsView();
+console.log("got this far");
 //Attaching events on document
 Util.events(document, {
     //runs at the end of start-up when the DOM is ready
@@ -44,7 +45,8 @@ Util.events(document, {
         dom.timelinePaddingRight = Util.one("#timelinePaddingRight");
         dom.formationCommentsBox = Util.one("#formationCommentsBox");
         dom.formationTitle = Util.one("#formationTitle");
-
+        dom.addGroup = Util.one("#addGroup");
+        dom.groupsDiv = Util.one("#groupsDiv");
 
         stageView.ctx = getTrackedContext(dom.stageView.getContext('2d', { alpha: false }));
 
@@ -54,6 +56,7 @@ Util.events(document, {
         dom.confirmStage.addEventListener("click", () => stageView.doneDrawing());
         dom.addDancer.addEventListener("click", () => stageView.addDancer());
         dom.removeDancer.addEventListener("click", () => stageView.removeDancer());
+        dom.addGroup.addEventListener("click", () => groupsView.addGroup());
         dom.zoomIn.addEventListener("click", () => stageView.zoomAnim(20, 1.3));
         dom.zoomOut.addEventListener("click", () => stageView.zoomAnim(20, -1.3));
         dom.resetView.addEventListener("click", () => stageView.resetView());
