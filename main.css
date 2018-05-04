@@ -173,7 +173,6 @@ textarea {
     --c: rgb(247, 247, 247);
     font-family: Consolas;
     border: none;
-    background-color: var(--c);
     color: green;
     font-size: 4em;
 }
