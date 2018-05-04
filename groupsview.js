@@ -7,7 +7,7 @@ class GroupsView {
 
     addGroup() {
         this.curr = this.curr + 1;
-        let newGroup = document.createElement("div");
+        let newGroup = document.createElement("button");
         newGroup.setAttribute("id", "group" + this.curr);
         let newGroupDelete = document.createElement("button");
         newGroupDelete.innerHTML = " - ";
@@ -18,6 +18,7 @@ class GroupsView {
         newGroup.appendChild(newGroupDelete);
         dom.groupsDiv.appendChild(newGroup);
         this.groups.set(this.curr, newGroup);
+        newGroup.focus();
     }
 
     deleteGroup(ind) {

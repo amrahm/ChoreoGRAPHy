@@ -69,6 +69,7 @@ main {
     font: 1.2em var(--sans-font);
     grid-area: groups;
     text-align: center;
+    padding-left: 20px;
 }
 
 #groupsList {
@@ -175,13 +176,12 @@ textarea {
     border: none;
     color: green;
     font-size: 4em;
+    background-color: transparent;
 }
 #addGroup:active, .deleteGroup:active {
     border: inset 1px;
 }
-#addGroup:disabled, {
-    color: gray;
-}
+
 .deleteGroup{
     --c: rgb(247, 247, 247);
     font-family: Consolas;
@@ -195,6 +195,8 @@ textarea {
 .groupIcon {
     background: whitesmoke;
     border: 1px solid gray;
+    border-radius: 0px;
+    width:100%;
     padding: 10px;
 }
 
