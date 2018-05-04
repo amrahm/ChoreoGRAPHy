@@ -467,7 +467,7 @@ class StageView extends EventTarget {
     }
 
     mousedown(mouse, buttons) {
-        saveState(1);
+        if (buttons === 1) saveState();
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
         this.lastM = mouseT;
         this.dragged = false;
@@ -720,26 +720,32 @@ class StageView extends EventTarget {
         }
     }
     keypress(evt) {
-        if (this.renaming === null) return;
-        if (evt.keyCode === 13) { //Enter
-            this.renaming = null;
-            this.renamingStart = false;
+        if(evt.ctrlKey === true && ((evt.keyCode === 26 && evt.shiftKey === true) || evt.keyCode === 25)){
+            redo(1);
+        }else if(evt.keyCode === 26 && evt.ctrlKey === true){
+            undo(1);
+        }
+        if (this.renaming !== null) {
+            if (evt.keyCode === 13) { //Enter
+                this.renaming = null;
+                this.renamingStart = false;
+                this.draw();
+                return;
+            }
+            if (this.renamingStart) {
+                this.renaming.name = evt.key;
+                this.renamingStart = false;
+            } else {
+                this.renaming.name += evt.key;
+            }
             this.draw();
-            return;
         }
-        if (this.renamingStart) {
-            this.renaming.name = evt.key;
-            this.renamingStart = false;
-        } else {
-            this.renaming.name += evt.key;
-        }
-        this.draw();
     }
     keydown(evt) {
         if (dom.drawingMode) {
             if (evt.keyCode === 46 || evt.keyCode === 8) { //:::DELETE POINT (Del or Backspace)
                 if (this.points.length === 0) return;
-
+                saveState();
                 let next = this.points[this.currPoint === this.points.length - 1 ?
                     0 : this.currPoint + 1];
                 let prev = this.points[this.currPoint === 0 ?
@@ -764,7 +770,7 @@ class StageView extends EventTarget {
                 this.draw();
             }
         }
-        if (this.renaming !== null) {
+        if (this.renaming !== null && evt.ctrlKey === false &&  evt.shiftKey === false) {
             if (evt.keyCode === 8) { //Backspace
                 if (this.renamingStart) {
                     this.renaming.name = "";

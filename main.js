@@ -141,40 +141,70 @@ function formationTitleWidth() {
         Util.getStyleValue(dom.formationTitle, "font-size"), "normal", dom.formationTitle.value);
     dom.formationTitle.style.setProperty("width", `${width + 40}px`);
 }
+
+//After the first undo/redo in a series, the state being pushed to the other stack
+// is the state that was just activated by the first undo/redo
+let limbo = null;
 function undo() {
+    if (undoStack.length === 0) return;
     let state = undoStack.pop();
-    redoStack.push(state);
+    if (limbo == null) {
+        saveState(true);
+        limbo = state;
+    } else {
+        redoStack.push(limbo);
+        limbo = null;
+    }
     stageView = state.stageView;
     timeline = state.timeline;
     stageView.draw();
-    console.log(undoStack);
+    checkUndoRedoDisabled();
 }
 function redo() {
+    if (redoStack.length === 0) return;
     let state = redoStack.pop();
-    undoStack.push(state);
+    if (limbo == null) {
+        saveState(false, true);
+        limbo = state;
+    } else {
+        undoStack.push(limbo);
+        limbo = null;
+    }
     stageView = state.stageView;
     timeline = state.timeline;
+    stageView.draw();
+    checkUndoRedoDisabled();
 }
 
-/** Save the state of an object before modifiying it so it can be undone
- * @param {number} stateNum 0 = save all, 1 = save stageView, 2 = save timeline
- */
-function saveState(stateNum = 0) {
+/** Save the state of an object before modifiying it so it can be undone */
+function saveState(saveToRedo = false, isASwap = false) {
     let state = {};
 
-    if (stateNum === 0 || stateNum === 1) {
-        state.stageView = JSON.parse(JSON.stringify(stageView));
+    state.stageView = Object.assign(Object.create(Object.getPrototypeOf(stageView)), stageView);
+    state.stageView.points = Object.assign([], stageView.points);
+    state.stageView.selected = Object.assign([], stageView.selected);
+    state.stageView.dancers = JSON.parse(JSON.stringify(stageView.dancers)); //Deep copy needed
+    state.stageView.bounds = Object.assign({}, stageView.bounds);
+
+    state.timeline = Object.assign(Object.create(Object.getPrototypeOf(timeline)), timeline);
+    state.timeline.formations = Object.assign([], timeline.formations);
+    state.timeline.mouse = Object.assign({}, timeline.mouse);
+
+    if (saveToRedo) {
+        redoStack.push(state);
     } else {
-        state.stageView = stageView;
+        undoStack.push(state);
+        if (!isASwap) {
+            redoStack = [];
+            limbo = null
+        }
     }
 
-    if (stateNum === 0 || stateNum === 2) {
-        state.timeline = JSON.parse(JSON.stringify(timeline));
-    } else {
-        state.timeline = timeline;
-    }
+    checkUndoRedoDisabled();
+    console.log(undoStack, redoStack);
+}
 
-    undoStack.push(state);
-    redoStack = []; //Remove this line for non-linear history?
-    console.log(undoStack);
+function checkUndoRedoDisabled() {
+    dom.undo.disabled = undoStack.length === 0;
+    dom.redo.disabled = redoStack.length === 0;
 }

@@ -19,7 +19,7 @@
         [row6-start] "showDancerSize showDancerSize showDancerSize" min-content [row6-end]
         [row7-start] ". . ." auto [row7-end]
         [row8-start] "done done done" min-content [row8-end]
-        / 1fr 1fr 1fr;
+        / 2fr 1fr 2fr;
 }
 
 #undo {
