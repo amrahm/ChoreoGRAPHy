@@ -18,12 +18,10 @@ class GroupsView {
         newGroup.appendChild(newGroupDelete);
         dom.groupsDiv.appendChild(newGroup);
         this.groups.set(this.curr, newGroup);
-        console.log("adding a group");
     }
 
     deleteGroup(ind) {
         var groupToKill = eval(ind);
-        console.log("deleting a group");
         dom.groupsDiv.removeChild(document.getElementById("group" + groupToKill));
         this.groups.delete(groupToKill);
     }

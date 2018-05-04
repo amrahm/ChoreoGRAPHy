@@ -41,6 +41,12 @@
         </div>
         <p id="drawingInstruction">Draw your stage shape below:</p>
         <div id="stageDrawingControls">
+            <button id="undo" class="roundedBoxIconButton">
+                <p>Undo</p>
+            </button>
+            <button id="redo" class="roundedBoxIconButton">
+                <p>Redo</p>
+            </button>
             <div id="showGrid" class="gridOption">
                 <p>Show Grid:</p> 
                 <div class="checkbox">
@@ -51,11 +57,11 @@
             <div id="gridScale" class="gridOption">
                 <p>Grid Scale:</p> <input type="text" value="1" id="gridScaleValue">
                 <select name="units" id="gridScaleUnits">
-                    <option value="value1" selected>dancers</option> 
-                    <option value="value2">in</option>
-                    <option value="value3">ft</option>
-                    <option value="value4">cm</option>
-                    <option value="value5">m</option>
+                    <option value=40 selected>dancers</option> 
+                    <option value=2.54>in</option>
+                    <option value=30.48>ft</option>
+                    <option value=1>cm</option>
+                    <option value=100>m</option>
                   </select>
             </div>
             <div id="snapToGrid" class="gridOption">
@@ -68,7 +74,7 @@
             <div id="showDancerSize" class="gridOption">
                 <p>Show Dancer Size:</p>
                 <div class="checkbox">
-                    <input type="checkbox" id="showDancerSizeCheck" name="Show Dancer Size" checked />
+                    <input type="checkbox" id="showDancerSizeCheck" name="Show Dancer Size" />
                     <label for="showDancerSizeCheck"></label>
                 </div>
             </div>

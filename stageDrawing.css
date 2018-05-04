@@ -22,6 +22,15 @@
         / 1fr 1fr 1fr;
 }
 
+#undo {
+    grid-area: undo;
+}
+
+#redo {
+    grid-area: redo;
+}
+
+
 .gridOption {
     display: flex;
     flex-wrap: wrap;
@@ -44,7 +53,7 @@
     position: absolute;
     top: 0;
     left: 0;
-    background: #777;
+    background: #888;
     border-radius: 4px;
     box-shadow: inset 1px 2px 4px rgba(0, 0, 0, 0.5),
                 inset -1px -1px 2px rgba(0, 0, 0, 0.3);
@@ -52,8 +61,8 @@
 .checkbox > label:after {
     content: '✓';
     position: absolute;
-    top: -2.5px;
-    left: 2.5px;
+    top: -15%;
+    left: 10%;
     color: white;
     font: 1.2em var(--sans-font);
     opacity: 0;
@@ -61,6 +70,13 @@
 .checkbox > label:hover::after { opacity: 0.3; }
 .checkbox > input[type=checkbox] { visibility: hidden; }
 .checkbox > input[type=checkbox]:checked + label:after { opacity: 1; }
+.checkbox > input[type=checkbox]:disabled + label {
+    cursor: auto;
+    background: #CCC;
+    box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
+}
+.checkbox > input[type=checkbox]:disabled + label:hover::after { opacity: 0; }
+.checkbox > input[type=checkbox]:disabled:checked + label:after { opacity: 0.5; }
 
 #showGrid { grid-area: showGrid; }
 #gridScale { grid-area: gridScale; }
@@ -70,7 +86,14 @@
     text-align: right;
     padding-right: 5px;
 }
+#gridScaleValue.invalid {
+    background-color: rgb(255, 155, 155);
+}
+#gridScale.disabled { color: gray; }
+
+
 #snapToGrid { grid-area: snapToGrid; }
+#snapToGrid.disabled { color: gray; }
 #showDancerSize { grid-area: showDancerSize; }
 
 #confirmStage {
