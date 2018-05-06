@@ -51,6 +51,7 @@ Util.events(document, {
         dom.formationTitle = Util.one("#formationTitle");
         dom.addGroup = Util.one("#addGroup");
         dom.groupsDiv = Util.one("#groupsDiv");
+        dom.audience = Util.one("#audience");
 
 
         dom.undo.addEventListener("click", () => undo());

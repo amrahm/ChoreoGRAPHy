@@ -428,6 +428,7 @@ class StageView extends EventTarget {
         dom.stageDrawing.style.display = "none";
         dom.stageDrawingControls.style.display = "none";
         dom.drawingInstruction.style.display = "none";
+        dom.audience.style.display = "none";
         dom.editStage.style.display = "block";
         dom.stageView.classList.remove("drawing");
         this.drawingMode = false;
@@ -443,6 +444,7 @@ class StageView extends EventTarget {
         dom.stageDrawing.style.display = "block";
         dom.stageDrawingControls.style.display = "grid";
         dom.drawingInstruction.style.display = "block";
+        dom.audience.style.display = "flex";
         dom.editStage.style.display = "none";
         dom.stageView.classList.add("drawing");
         this.drawingMode = true;
