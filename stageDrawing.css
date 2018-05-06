@@ -107,9 +107,7 @@
     text-align: right;
     padding-right: 5px;
 }
-#gridScaleValue.invalid {
-    background-color: var(--invalid-red);
-}
+#gridScaleValue.invalid { background-color: var(--invalid-red); }
 #gridScale.disabled { color: gray; }
 
 
@@ -139,10 +137,26 @@
     z-index: 1000;
 }
 
-#stageView.drawing {
-    cursor: crosshair;
-}
+#stageView.drawing { cursor: crosshair; }
+#stageView.select { cursor: default !important; }
 
-#stageView.select {
-    cursor: default !important;
+#audience {
+    display: flex;
+    grid-area: timeline;
+    justify-self: center;
+    align-self: flex-start;
+    align-items: flex-end;
+    font: 2em var(--sans-font);
+    z-index: 1000;
+    border-bottom: 2px solid black;
+}
+#audience > img {
+    width: 40px;
+    height: 40px;
+}
+#audience > p{
+    margin: 0 10px 0 10px;
+}
+.audienceItem {
+    margin: 0 5px 0 5px;
 }
