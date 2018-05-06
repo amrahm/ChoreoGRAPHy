@@ -60,8 +60,14 @@ Util.events(document, {
         dom.gridScaleUnits.addEventListener("change", () => stageView.gridScaleChange());
         dom.snapToGrid.addEventListener("change", () => stageView.snapToGridPress());
         dom.showDancerSize.addEventListener("change", () => stageView.showDancerSizePress());
-        dom.confirmStage.addEventListener("click", () => stageView.doneDrawing());
-        dom.editStage.addEventListener("click", () => stageView.startDrawing());
+        dom.confirmStage.addEventListener("click", () => {
+            saveState();
+            stageView.doneDrawing()
+        });
+        dom.editStage.addEventListener("click", () => {
+            saveState();
+            stageView.startDrawing()
+        });
         dom.addDancer.addEventListener("click", () => stageView.addDancer());
         dom.removeDancer.addEventListener("click", () => stageView.removeDancer());
         dom.addGroup.addEventListener("click", () => groupsView.addGroup());
@@ -69,10 +75,25 @@ Util.events(document, {
         dom.zoomOut.addEventListener("click", () => stageView.zoomAnim(20, -1.3));
         dom.resetView.addEventListener("click", () => stageView.resetView());
         dom.insertFormation.addEventListener("click", () => timeline.insertFormation());
-        dom.addFormation.addEventListener("click", () => timeline.addFormation());
-        dom.deleteFormation.addEventListener("click", () => timeline.deleteFormation());
+        dom.addFormation.addEventListener("click", () => {
+            timeline.addFormation();
+            dom.timeline.focus();
+        });
+        dom.deleteFormation.addEventListener("click", () => {
+            timeline.deleteFormation();
+            dom.timeline.focus();
+        });
         dom.formationTitle.addEventListener("keyup", () => {
-            timeline.formations[timeline.curr].name.innerText = dom.formationTitle.value;
+            dom.formationTitle.classList.remove("invalid");
+            let invalid = false;
+            for (let i = 0; i < timeline.formations.length; i++) {
+                if (i !== timeline.curr &&
+                    timeline.formations[i].name.innerText === dom.formationTitle.value) {
+                    dom.formationTitle.classList.add("invalid");
+                    invalid = true;
+                }
+            }
+            if (!invalid) timeline.formations[timeline.curr].name.innerText = dom.formationTitle.value;
             timeline.formations[timeline.curr].name.resizeMe();
             formationTitleWidth();
         });
@@ -118,7 +139,7 @@ Util.events(document, {
         }, 1000);
 
 
-        timeline.insertFormation();
+        timeline.insertFormation(false);
         stageView.respondCanvas(true);
         window.onresize = () => stageView.respondCanvas();
     },
@@ -184,12 +205,10 @@ function undo() {
         redoStack.push(limbo);
         limbo = null;
     }
-    let wasDrawing = stageView.drawingMode;
-    loadState(state);
     stageView.selected = [];
-    checkUndoRedoDrawingChange(wasDrawing, stageView.drawingMode);
+    loadState(state);
     stageView.draw();
-    checkUndoRedoDisabled();
+    undoRedoEnabledCheck();
 }
 function redo() {
     if (redoStack.length === 0) return;
@@ -201,12 +220,10 @@ function redo() {
         undoStack.push(limbo);
         limbo = null;
     }
-    let wasDrawing = stageView.drawingMode;
-    loadState(state);
     stageView.selected = [];
-    checkUndoRedoDrawingChange(wasDrawing, stageView.drawingMode);
+    loadState(state);
     stageView.draw();
-    checkUndoRedoDisabled();
+    undoRedoEnabledCheck();
 }
 
 /** Save the state of an object before modifiying it so it can be undone */
@@ -219,10 +236,18 @@ function saveState(saveToRedo = false, isASwap = false) {
     state.stageView.bounds = Object.assign({}, stageView.bounds);
 
     state.timeline = Object.assign(Object.create(Object.getPrototypeOf(timeline)), timeline);
-    state.timeline.formations = Object.assign([], timeline.formations);
+    state.timeline.formations = []; //Deep copy needed, but objects have functions
+    timeline.formations.forEach(formation => {
+        state.timeline.formations.push({
+            name: formation.name,
+            slide: formation.slide,
+            ctx: formation.ctx,
+            comment: formation.comment
+        });
+    });
 
     if (saveToRedo) redoStack.push(state);
-    else {
+    else if (!(undoStack.length > 0 && checkStateEquals(undoStack[undoStack.length - 1], state))) {
         undoStack.push(state);
         if (!isASwap) {
             redoStack = [];
@@ -230,10 +255,14 @@ function saveState(saveToRedo = false, isASwap = false) {
         }
     }
 
-    checkUndoRedoDisabled();
-    console.log(undoStack, redoStack);
+    undoRedoEnabledCheck();
+    // console.log("Stacks:", undoStack, redoStack);
 }
 function loadState(state) {
+    // console.log("LOADING", state);
+    // console.log("Replacing", stageView, timeline);
+    let wasDrawing = stageView.drawingMode;
+
     stageView.drawingMode = state.stageView.drawingMode;
     stageView.firstPoint = state.stageView.firstPoint;
     stageView.closed = state.stageView.closed;
@@ -243,29 +272,41 @@ function loadState(state) {
     stageView.dancers = state.stageView.dancers;
     stageView.bounds = state.stageView.bounds;
 
-    timeline.formations = state.timeline.formations;
+    timeline.changeFormations(state.timeline.formations);
+    timeline.totalEver = state.timeline.totalEver;
+    if (state.timeline.curr < timeline.formations.length) {
+        timeline.formations.forEach(formation => formation.slide.classList.remove("selected"));
+        timeline.selectFormation(state.timeline.curr);
+    }
+
+
+    checkUndoRedoChanges(wasDrawing, stageView.drawingMode);
+    timeline.resetThumbnails();
 }
 function checkStateEquals(state1, state2) {
-    return JSON.stringify(state1.stageView.drawingMode) === JSON.stringify(state2.stageView.drawingMode) &&
+    return state1.stageView.drawingMode === state2.stageView.drawingMode &&
         JSON.stringify(state1.stageView.firstPoint) === JSON.stringify(state2.stageView.firstPoint) &&
-        JSON.stringify(state1.stageView.closed) === JSON.stringify(state2.stageView.closed) &&
-        JSON.stringify(state1.stageView.currPoint) === JSON.stringify(state2.stageView.currPoint) &&
+        state1.stageView.closed === state2.stageView.closed &&
+        state1.stageView.currPoint === state2.stageView.currPoint &&
         JSON.stringify(state1.stageView.stage) === JSON.stringify(state2.stageView.stage) &&
         JSON.stringify(state1.stageView.points) === JSON.stringify(state2.stageView.points) &&
         JSON.stringify(state1.stageView.dancers) === JSON.stringify(state2.stageView.dancers) &&
         JSON.stringify(state1.stageView.bounds) === JSON.stringify(state2.stageView.bounds) &&
 
+        state1.timeline.curr === state2.timeline.curr &&
+        state1.timeline.totalEver === state2.timeline.totalEver &&
         JSON.stringify(state1.timeline.formations) === JSON.stringify(state2.timeline.formations);
 }
 
-function checkUndoRedoDisabled() {
+function undoRedoEnabledCheck() {
     dom.undo.disabled = undoStack.length === 0;
     dom.redo.disabled = redoStack.length === 0;
 }
 
-function checkUndoRedoDrawingChange(wasDrawing, isDrawing) {
+function checkUndoRedoChanges(wasDrawing, isDrawing) {
     if (wasDrawing !== isDrawing) {
         if (isDrawing) stageView.startDrawing();
         else stageView.doneDrawing();
     }
+    dom.confirmStage.disabled = !stageView.closed;
 }

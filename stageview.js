@@ -1,5 +1,4 @@
 //TODO: Zoom min and max
-//TODO: Undo/Redo
 //TODO: Front view
 //TODO: CTRL/Shift for selecting multiple, del for removing dancer
 
@@ -142,6 +141,7 @@ class StageView extends EventTarget {
         }
 
         //:::DANCERS
+        // console.log("DANCERS", this.dancers);
         this.dancers.forEach(dancer => this.drawDancer(ctx, dancer, formation));
 
         //:::DRAG HANDLE part 2
@@ -228,6 +228,8 @@ class StageView extends EventTarget {
 
     /** Draw a dancer at their position in the specified formation */
     drawDancer(ctx, dancer, formation, isExample = false, r = dancerRadius) {
+        // console.log("DANCERFormation", formation, dancer.positions);
+        
         let pos = dancer.positions[formation];
         ctx.save();
         ctx.translate(pos.x, pos.y);
@@ -814,7 +816,6 @@ class StageView extends EventTarget {
         if (this.stage != null && this.closed) {
             let sWidth = this.bounds.maxX - this.bounds.minX;
             let sHeight = this.bounds.maxY - this.bounds.minY;
-            console.log(this.bounds, sWidth, sHeight);
             ctx.translate((width - sWidth) / 2 - this.bounds.minX, (height - sHeight) / 2 - this.bounds.minY);
 
             let zoomScalar = Math.min(width / sWidth, height / sHeight) * 0.9;

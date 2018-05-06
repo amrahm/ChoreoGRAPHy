@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css?family=Comfortaa|Julius+Sans+One');
 :root { /* Global variables */
     --sans-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --invalid-red: rgb(255, 155, 155);
 }
 
 html, body, main, #stageDrawing {
@@ -38,7 +39,7 @@ main {
 
 .n1 {
     grid-area: header;
-    color: hsl(210, 80%, 45%);
+    color: #1672ce;
     font-size: calc((11vw) / 7);
     font-family: 'Comfortaa', cursive;
     font-style: italic;
@@ -77,6 +78,9 @@ main {
     width: 150px;
     border-radius: 1px;
 }
+#formationTitle.invalid {
+    background-color: var(--invalid-red);
+}
 
 #dancerControls { grid-area: dancerControls; }
 
@@ -104,8 +108,11 @@ button {
     justify-content: center;
     align-content: center;
 }
-.roundedBoxIconButton:active {
+.roundedBoxIconButton:disabled { filter: grayscale(100%) }
+.roundedBoxIconButton:hover:enabled { filter: brightness(102%); }
+.roundedBoxIconButton:active:enabled {
     border: inset 1px;
+    filter: brightness(98%);
 }
 
 textarea {

@@ -41,41 +41,45 @@
         </div>
         <p id="drawingInstruction">Draw your stage shape below:</p>
         <div id="stageDrawingControls">
-            <button id="undo" class="roundedBoxIconButton" disabled>
+            <button id="undo" disabled>
+                <div></div>
                 <p>Undo</p>
             </button>
-            <button id="redo" class="roundedBoxIconButton" disabled>
+            <button id="redo" disabled>
+                <div></div>
                 <p>Redo</p>
             </button>
-            <div id="showGrid" class="gridOption">
-                <p>Show Grid:</p> 
-                <div class="checkbox">
-                    <input type="checkbox" id="showGridCheck" name="Show Grid" checked />
-                    <label for="showGridCheck"></label>
+            <div id="drawingOptions">
+                <div id="showGrid" class="gridOption">
+                    <p>Show Grid:</p> 
+                    <div class="checkbox">
+                        <input type="checkbox" id="showGridCheck" name="Show Grid" checked />
+                        <label for="showGridCheck"></label>
+                    </div>
                 </div>
-            </div>
-            <div id="gridScale" class="gridOption">
-                <p>Grid Scale:</p> <input type="text" value="1" id="gridScaleValue">
-                <select name="units" id="gridScaleUnits">
-                    <option value=40 selected>dancers</option> 
-                    <option value=2.54>in</option>
-                    <option value=30.48>ft</option>
-                    <option value=1>cm</option>
-                    <option value=100>m</option>
-                  </select>
-            </div>
-            <div id="snapToGrid" class="gridOption">
-                <p>Snap to Grid:</p>
-                <div class="checkbox">
-                    <input type="checkbox" id="snapToGridCheck" name="Snap to Grid" checked />
-                    <label for="snapToGridCheck"></label>
+                <div id="gridScale" class="gridOption">
+                    <p>Grid Scale:</p> <input type="text" value="1" id="gridScaleValue">
+                    <select name="units" id="gridScaleUnits">
+                        <option value=40 selected>dancers</option> 
+                        <option value=2.54>in</option>
+                        <option value=30.48>ft</option>
+                        <option value=1>cm</option>
+                        <option value=100>m</option>
+                    </select>
                 </div>
-            </div>
-            <div id="showDancerSize" class="gridOption">
-                <p>Show Dancer Size:</p>
-                <div class="checkbox">
-                    <input type="checkbox" id="showDancerSizeCheck" name="Show Dancer Size" />
-                    <label for="showDancerSizeCheck"></label>
+                <div id="snapToGrid" class="gridOption">
+                    <p>Snap to Grid:</p>
+                    <div class="checkbox">
+                        <input type="checkbox" id="snapToGridCheck" name="Snap to Grid" checked />
+                        <label for="snapToGridCheck"></label>
+                    </div>
+                </div>
+                <div id="showDancerSize" class="gridOption">
+                    <p>Show Dancer Size:</p>
+                    <div class="checkbox">
+                        <input type="checkbox" id="showDancerSizeCheck" name="Show Dancer Size" />
+                        <label for="showDancerSizeCheck"></label>
+                    </div>
                 </div>
             </div>
             <button id="confirmStage" class="roundedBoxIconButton" disabled>
