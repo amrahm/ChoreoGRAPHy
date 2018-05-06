@@ -49,20 +49,20 @@ class Timeline {
         name.innerText = `Formation ${this.totalEver++}`;
         name.resizeMe = () => {
             let size = 25;
-            
+
             let width = stageView.measureText(dom.sansFont, size, "normal", name.innerText);
             size *= this.slideWidth / width;
             size = Math.max(Math.min(size, 29), 18);
-            if(!name.parentElement.classList.contains("selected"))
+            if (!name.parentElement.classList.contains("selected"))
                 size *= this.slideSmaller;
             name.style.setProperty("font-size", `${size}px`);
             let bott = 8 * size / 30;
             name.style.setProperty("padding-bottom", `${bott}px`);
             width = stageView.measureText(dom.sansFont, size, "normal", name.innerText);
-            if (width > 1.98 * this.slideWidth){
+            if (width > 1.98 * this.slideWidth) {
                 name.style.setProperty("line-height", `${20}px`);
                 name.style.setProperty("padding-bottom", `${0}px`);
-            }else{
+            } else {
                 name.style.setProperty("line-height", `${30}px`);
             }
         };
@@ -138,6 +138,22 @@ class Timeline {
         del.slide.classList.add("removing");
         setTimeout(() => dom.timeline.removeChild(del.slide), this.slideT * 1000);
     }
+
+    resetThumbnails() {
+        for (let i = 0; i < timeline.formations.length; i++) {
+            let width = parseInt(Util.getStyleValue(timeline.formations[i].ctx.canvas, "width"));
+            let height = parseInt(Util.getStyleValue(timeline.formations[i].ctx.canvas, "height"));
+            if (i === this.curr) {
+                width *= this.slideSmaller;
+                height *= this.slideSmaller;
+            }
+            console.log(width, height);
+            stageView.resetView(timeline.formations[i].ctx, width, height);
+            stageView.draw(timeline.formations[i].ctx, false, i);
+        }
+    }
+
+
     /** Sets the 'order' css property for all slides based on index in this.formations */
     resetOrder() {
         for (let i = 0; i < this.formations.length; i++) {

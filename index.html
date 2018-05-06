@@ -109,7 +109,7 @@
             <p>Formation Comments</p>
             <textarea id="formationCommentsBox"></textarea>
         </div>
-        <div id="timeline" oncontextmenu="return false;">
+        <div id="timeline" oncontextmenu="return false;" tabindex="0">
             <div id="timelinePaddingLeft"></div>
             <button id="addFormation">
                 <img src="graphics/AddFormationIcon.png" alt="Add Formation">
@@ -126,15 +126,17 @@
                 <p>Delete Formation</p>
             </button>
         </div>
-        <div id="music">
+        <!-- <div id="music">
             <p>Drag and drop music here, or click</p>
             <button id="musicUploadButton">Upload</button>
-        </div>
+        </div> -->
         <canvas id="stageView" class="drawing" oncontextmenu="return false;" tabindex="1"></canvas>
         <div id="stageViewControls" oncontextmenu="return false;">
-            <input id="zoomIn" type="image" src="graphics/PlusIcon.png" alt="Zoom In">
-            <input id="zoomOut" type="image" src="graphics/MinusIcon.png" alt="Zoom Out">
-            <input id="resetView" type="image" src="graphics/ResetIcon.png" alt="Reset View">
+            <input id="editStage" type="image" src="graphics/EditIcon.png" alt="Edit Stage" title="Edit Stage">
+            <div id="stageViewControlsSpacer"></div>
+            <input id="zoomIn" type="image" src="graphics/PlusIcon.png" alt="Zoom In" title="Zoom In">
+            <input id="zoomOut" type="image" src="graphics/MinusIcon.png" alt="Zoom Out" title="Zoom Out">
+            <input id="resetView" type="image" src="graphics/ResetIcon.png" alt="Reset View" title="Reset View">
         </div>
 
         <ul id="stageLegend">

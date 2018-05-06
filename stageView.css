@@ -7,23 +7,36 @@
 #stageView:hover {
     border: 1px solid rgb(192, 192, 192);
 }
-#zoomIn {
+#stageViewControls {
+    grid-area: canvas;
+    justify-self: stretch;
+    align-self: start;
+    display: flex;
+    margin: 7px -4px 0 0;
+    z-index: 1002;
+    /* background-color: rgb(205, 255, 240); */
+    pointer-events: visible;
+    visibility: hidden;
+}
+
+#editStage, #zoomIn, #zoomOut, #resetView {
     width: 40px;
     height: 40px;
+    visibility: visible;
 }
-#zoomIn:focus {outline:0;}
+#editStage {
+    display: none;
+    margin-left: 8px;
+    cursor: alias;
+}
+#zoomIn { cursor: zoom-in; }
 #zoomOut {
-    width: 40px;
-    height: 40px;
     margin: 0 10px 0 10px;
+    cursor: zoom-out;
 }
-#zoomOut:focus {outline:0;}
-#resetView {
-    width: 40px;
-    height: 40px;
-    margin-right: 10px;
-}
-#resetView:focus {outline:0;}
+#resetView { margin-right: 10px; }
+#editStage:focus, #zoomIn:focus, #zoomOut:focus, #resetView:focus { outline:0; }
+#stageViewControlsSpacer { flex-grow: 1; }
 
 
 #dancerControls {

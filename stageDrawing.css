@@ -3,7 +3,7 @@
 }
 
 #stageDrawingControls {
-    grid-area: 3 / 7 / 6 / 8;
+    grid-area: 3 / 8 / 6 / 9;
     justify-self: stretch;
     /* background: violet; */
     z-index: 1000;
@@ -20,6 +20,7 @@
         [row7-start] ". . ." auto [row7-end]
         [row8-start] "done done done" min-content [row8-end]
         / 2fr 1fr 2fr;
+    font: 1em var(--sans-font);
 }
 
 #undo {
