@@ -37,6 +37,17 @@
 
 <body>
     <main>
+        <div id="tutorial" grid-area= "1 / 1 / 8 / 10">
+            <center>
+                <div id="welcome" class="n1">Welcome to Choreo<span class="n2">GRAPH</span>y<span class="n3">™</span>!</div>
+                <div class="n1">Let's do a quick walkthrough before we start.</div>
+                <img id="tutorialImage" src="tutorial_drawing.png">
+            </center>
+            <center>
+                <button id="backButton" disabled onclick="previousSlide()">Back</button>
+                <button id="tutorialButton" onclick="nextSlide()">Next</button>
+            </center>
+        </div>
         <div id="stageDrawing"> </div>
         <p id="drawingInstruction">Draw your stage shape below:</p>
         <div id="audience">
