@@ -31,7 +31,7 @@ Util.events(document, {
         dom.stageViewControls = Util.one("#stageViewControls");
         dom.stageViewControls.style.display = "flex";
         dom.stageView = Util.one("#stageView");
-        stageView = new StageView(dom.stageView.getContext('2d', { alpha: false }));
+        stageView = new StageView(dom.stageView.getContext('2d', { alpha: false }), groupsView);
         dom.timeline = Util.one("#timeline");
         timeline = new Timeline(parseFloat(Util.getStyleValue(dom.root, "--slide-t")),
             parseFloat(Util.getStyleValue(dom.root, "--slide-width")),

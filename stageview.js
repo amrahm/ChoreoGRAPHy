@@ -9,11 +9,14 @@ const distThreshold = 15; //num pixels close that are considered close enough to
 
 /** Implements the top and front stage views, with adding and removing dancers */
 class StageView extends EventTarget {
-    constructor(ctx) {
+    constructor(ctx, groups) {
         super();
         this.ctx = getTrackedContext(ctx);
         this.width = null; //initialized in respondCanvas()
         this.height = null; //^
+
+        // to interact with groups controls
+        this.groups = groups;
 
         //:::Stage Drawing
         this.drawingMode = true;
@@ -249,7 +252,11 @@ class StageView extends EventTarget {
         else {
             ctx.shadowBlur = 0;
         }
-        ctx.fillStyle = isExample || this.drawingMode ? "rgba(60, 60, 60, 0.7)" : "rgb(60, 60, 60)";
+
+        // this is where dancers are colored; need to edit for group colorings
+        let fillColor = groupsView.getColorOfGroup(dancer.group);
+        ctx.fillStyle = isExample || this.drawingMode ? "rgba(60, 60, 60, 0.7)" : fillColor; 
+        // end groupsview interaction
         ctx.beginPath();
         ctx.arc(0, 0, r, 0, Math.PI * 2);
         ctx.fill();
@@ -370,7 +377,7 @@ class StageView extends EventTarget {
         }
         this.ctx.restore();
 
-        let dancer = { name: "name", positions: pos };
+        let dancer = { name: "name", positions: pos, group: this.groups.getActiveColor() };
         this.dancers.push(dancer);
         this.selected = [dancer];
         dom.removeDancer.disabled = false;
@@ -464,6 +471,7 @@ class StageView extends EventTarget {
     }
 
     mousedown(mouse, buttons) {
+        let activeColor = groupsView.getActiveColor();
         if (buttons === 1) saveState();
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
         this.lastM = mouseT;
@@ -675,6 +683,7 @@ class StageView extends EventTarget {
             let pos = dancer.positions[timeline.curr];
             if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerRadius) ** 2) {
                 this.selected.push(dancer);
+                dancer.group = this.groups.getActiveColor();
                 this.rotating = null;
                 this.dragging = null;
                 this.moveDancerToEnd(dancer, i);
