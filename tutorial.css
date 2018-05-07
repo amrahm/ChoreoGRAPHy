@@ -1,0 +1,61 @@
+#tutorial {
+    background-color: ghostwhite;
+    display: grid;
+    grid-template: var(--grid-template);
+    --grid-template:
+        [row1-start] "welcome welcome welcome welcome welcome" min-content [row1-end]
+        [row2-start] "walkthrough walkthrough walkthrough walkthrough walkthrough" min-content [row2-end]
+        [row3-start] "image image image image image" auto [row3-end]
+        [row4-start] ". prev . next ." min-content [row4-end]
+        [row5-start] ". . . . ." 20px [row5-end]
+        / 2fr 1fr 1fr 1fr 2fr;
+}
+
+#welcome{ grid-area: welcome; }
+#walkthrough{ grid-area: walkthrough; }
+
+#tutorialImage{
+    grid-area: image;
+    background-image: url("tutorial_drawing.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center top;
+}
+#tutorialButton {
+    grid-area: next;
+    font-size: large;
+    /* width:40%; */
+    background-color: #1672ce;
+    color: white;
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: #1672ce;
+    padding: 15px;
+}
+#backButton {
+    grid-area: prev;
+    font-size: large;
+    /* width:40%; */
+    background-color: lightgray;
+    color: white;
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: lightgray;
+    padding: 15px;
+}
+
+#tutorialButton:hover, #backButton:hover { border-color: white; }
+#backButton:disabled {
+    color: gray;
+    border-color: gray;
+}
+
+#tutorialButton:active {
+    color: #1672ce;
+    background-color: white;
+}
+
+#backButton:active {
+    color: lightgray;
+    background-color: white;
+}

@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<!--
-6.813 - Team ChoreoGRAPHy™
--->
+<!-- 6.813 - Team ChoreoGRAPHy™ -->
 <html>
 
 <head>
@@ -19,8 +17,7 @@
     <link rel="stylesheet" href="timeline.css">
     <link rel="stylesheet" href="slider.css">
     <link rel="stylesheet" href="groupsview.css">
-    <!-- Load any supplemental Javascript libraries here -->
-    <!-- ... -->
+    <link rel="stylesheet" href="tutorial.css">
 
     <!-- Constructible EventTarget polyfill for added support -->
     <script src="https://unpkg.com/event-target@latest/min.js"></script>
@@ -37,16 +34,12 @@
 
 <body>
     <main>
-        <div id="tutorial" grid-area= "1 / 1 / 8 / 10">
-            <center>
-                <div id="welcome" class="n1">Welcome to Choreo<span class="n2">GRAPH</span>y<span class="n3">™</span>!</div>
-                <div class="n1">Let's do a quick walkthrough before we start.</div>
-                <img id="tutorialImage" src="tutorial_drawing.png">
-            </center>
-            <center>
-                <button id="backButton" disabled onclick="previousSlide()">Back</button>
-                <button id="tutorialButton" onclick="nextSlide()">Next</button>
-            </center>
+        <div id="tutorial">
+            <div id="welcome" class="n1">Welcome to Choreo<span class="n2">GRAPH</span>y<span class="n3">™</span>!</div>
+            <div id="walkthrough" class="n1">Let's do a quick walkthrough before we start.</div>
+            <div id="tutorialImage"></div>
+            <button id="backButton" disabled onclick="previousSlide()">Back</button>
+            <button id="tutorialButton" onclick="nextSlide()">Next</button>
         </div>
         <div id="stageDrawing"> </div>
         <p id="drawingInstruction">Draw your stage shape below:</p>

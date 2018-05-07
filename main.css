@@ -28,49 +28,6 @@ main {
 #tutorial {
     grid-area: 1 / 1 / 8 / 10;
     z-index: 1005;
-    background-color: ghostwhite;
-}
-#tutorialImage{
-    width:85%;
-    height:85%;
-}
-#tutorialButton {
-    font-size: large;
-    width:40%;
-    background-color: #1672ce;
-    color: white;
-    border-radius: 10px;
-    border-width: 2px;
-    border-color: #1672ce;
-    padding: 15px;
-}
-#backButton {
-    font-size: large;
-    width:40%;
-    background-color: lightgray;
-    color: white;
-    border-radius: 10px;
-    border-width: 2px;
-    border-color: lightgray;
-    padding: 15px;
-}
-
-#tutorialButton:hover, #backButton:hover {
-    border-color: white;
-}
-
-#tutorialButton:active {
-    color: #1672ce;
-    background-color: white;
-}
-
-#backButton:active {
-    color: lightgray;
-    background-color: white;
-}
-#backbutton:disabled {
-    color: gray;
-    border-color: gray;
 }
 
 #stageDrawing {
