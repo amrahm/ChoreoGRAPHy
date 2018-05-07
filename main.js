@@ -3,18 +3,16 @@
 //TODO: If have time, @ tags in formation comments
 //TODO: Make instructions box collapsible
 let dom = {}; //Holds DOM elements that don’t change, to avoid repeatedly querying the DOM
-let stageView = new StageView(); //load stageView code
+let stageView; //load stageView code
 let timeline; //load stageView code, initialized when content loaded
 let groupsView = new GroupsView();
-let undoStack = [];
+let undoStack = []; //TODO: Limit these so they don't get too crazy
 let redoStack = [];
 
 //Attaching events on document
 Util.events(document, {
     //runs at the end of start-up when the DOM is ready
     "DOMContentLoaded": () => {
-        dom.drawingMode = true;
-
         dom.root = Util.one("html");
         dom.undo = Util.one("#undo");
         dom.redo = Util.one("#redo");
@@ -31,7 +29,9 @@ Util.events(document, {
         dom.confirmStage = Util.one("#confirmStage");
         dom.drawingInstruction = Util.one("#drawingInstruction");
         dom.stageViewControls = Util.one("#stageViewControls");
-        dom.stageViewControls.style.display = "inline";
+        dom.stageViewControls.style.display = "flex";
+        dom.stageView = Util.one("#stageView");
+        stageView = new StageView(dom.stageView.getContext('2d', { alpha: false }));
         dom.timeline = Util.one("#timeline");
         timeline = new Timeline(parseFloat(Util.getStyleValue(dom.root, "--slide-t")),
             parseFloat(Util.getStyleValue(dom.root, "--slide-width")),
@@ -40,10 +40,10 @@ Util.events(document, {
             parseFloat(Util.getStyleValue(dom.root, "--slide-smaller")));
         dom.addDancer = Util.one("#addDancer");
         dom.removeDancer = Util.one("#removeDancer");
+        dom.editStage = Util.one("#editStage");
         dom.zoomIn = Util.one("#zoomIn");
         dom.zoomOut = Util.one("#zoomOut");
         dom.resetView = Util.one("#resetView");
-        dom.stageView = Util.one("#stageView");
         dom.addFormation = Util.one("#addFormation");
         dom.insertFormation = Util.one("#insertFormation");
         dom.deleteFormation = Util.one("#deleteFormation");
@@ -51,8 +51,8 @@ Util.events(document, {
         dom.formationTitle = Util.one("#formationTitle");
         dom.addGroup = Util.one("#addGroup");
         dom.groupsDiv = Util.one("#groupsDiv");
+        dom.audience = Util.one("#audience");
 
-        stageView.setContext(dom.stageView.getContext('2d', { alpha: false }));
 
         dom.undo.addEventListener("click", () => undo());
         dom.redo.addEventListener("click", () => redo());
@@ -61,7 +61,14 @@ Util.events(document, {
         dom.gridScaleUnits.addEventListener("change", () => stageView.gridScaleChange());
         dom.snapToGrid.addEventListener("change", () => stageView.snapToGridPress());
         dom.showDancerSize.addEventListener("change", () => stageView.showDancerSizePress());
-        dom.confirmStage.addEventListener("click", () => stageView.doneDrawing());
+        dom.confirmStage.addEventListener("click", () => {
+            saveState();
+            stageView.doneDrawing()
+        });
+        dom.editStage.addEventListener("click", () => {
+            saveState();
+            stageView.startDrawing()
+        });
         dom.addDancer.addEventListener("click", () => stageView.addDancer());
         dom.removeDancer.addEventListener("click", () => stageView.removeDancer());
         dom.addGroup.addEventListener("click", () => groupsView.addGroup());
@@ -69,16 +76,28 @@ Util.events(document, {
         dom.zoomOut.addEventListener("click", () => stageView.zoomAnim(20, -1.3));
         dom.resetView.addEventListener("click", () => stageView.resetView());
         dom.insertFormation.addEventListener("click", () => timeline.insertFormation());
-        dom.addFormation.addEventListener("click", () => timeline.addFormation());
-        dom.deleteFormation.addEventListener("click", () => timeline.deleteFormation());
+        dom.addFormation.addEventListener("click", () => {
+            timeline.addFormation();
+            dom.timeline.focus();
+        });
+        dom.deleteFormation.addEventListener("click", () => {
+            timeline.deleteFormation();
+            dom.timeline.focus();
+        });
         dom.formationTitle.addEventListener("keyup", () => {
-            timeline.formations[timeline.curr].name.innerText = dom.formationTitle.value;
+            dom.formationTitle.classList.remove("invalid");
+            let invalid = false;
+            for (let i = 0; i < timeline.formations.length; i++) {
+                if (i !== timeline.curr &&
+                    timeline.formations[i].name.innerText === dom.formationTitle.value) {
+                    dom.formationTitle.classList.add("invalid");
+                    invalid = true;
+                }
+            }
+            if (!invalid) timeline.formations[timeline.curr].name.innerText = dom.formationTitle.value;
             timeline.formations[timeline.curr].name.resizeMe();
             formationTitleWidth();
         });
-
-        stageView.respondCanvas(true);
-        window.onresize = () => stageView.respondCanvas();
         Util.events(dom.stageView, {
             "mousedown": evt => {
                 stageView.mousedown(getCanvasCoords(dom.stageView, evt), evt.buttons);
@@ -98,9 +117,20 @@ Util.events(document, {
             },
             "keydown": evt => {
                 stageView.keydown(evt);
+                checkUndoRedo(evt);
+            },
+            "mouseenter": evt => {
+                dom.stageView.focus();
             }
         });
-
+        Util.events(dom.timeline, {
+            "keydown": evt => {
+                checkUndoRedo(evt);
+            },
+            "mouseenter": evt => {
+                dom.timeline.focus();
+            }
+        });
 
         window.setInterval(() => {
             if (stageView.redrawThumb && timeline.formations.length !== 0) {
@@ -108,6 +138,11 @@ Util.events(document, {
                 stageView.redrawThumb = false;
             }
         }, 1000);
+
+
+        timeline.insertFormation(false);
+        stageView.respondCanvas(true);
+        window.onresize = () => stageView.respondCanvas();
     },
     "mousemove": evt => {
         if (timeline.mouse.dragging) {
@@ -135,6 +170,17 @@ Util.events(document, {
         stageView.mousedownOutside();
     }
 });
+function checkUndoRedo(evt) {
+    if (evt.ctrlKey === true && (evt.key === "Z" || evt.key === "y")) {
+        redo(1);
+        evt.preventDefault(); //Prevent default behavior for CTRL+Z and etc.
+    }
+    else if (evt.ctrlKey === true && evt.key === "z") {
+        undo(1);
+        evt.preventDefault();
+    }
+}
+
 function getCanvasCoords(canvas, evt) {
     let topLeft = Util.offset(canvas);
     return { x: evt.clientX - topLeft.left, y: evt.clientY - topLeft.top };
@@ -151,6 +197,8 @@ let limbo = null;
 function undo() {
     if (undoStack.length === 0) return;
     let state = undoStack.pop();
+    let curr = { stageView: stageView, timeline: timeline };
+    while (undoStack.length > 0 && checkStateEquals(state, curr)) state = undoStack.pop();
     if (limbo == null) {
         saveState(true);
         limbo = state;
@@ -158,10 +206,10 @@ function undo() {
         redoStack.push(limbo);
         limbo = null;
     }
-    stageView = state.stageView;
-    timeline = state.timeline;
+    stageView.selected = [];
+    loadState(state);
     stageView.draw();
-    checkUndoRedoDisabled();
+    undoRedoEnabledCheck();
 }
 function redo() {
     if (redoStack.length === 0) return;
@@ -173,10 +221,10 @@ function redo() {
         undoStack.push(limbo);
         limbo = null;
     }
-    stageView = state.stageView;
-    timeline = state.timeline;
+    stageView.selected = [];
+    loadState(state);
     stageView.draw();
-    checkUndoRedoDisabled();
+    undoRedoEnabledCheck();
 }
 
 /** Save the state of an object before modifiying it so it can be undone */
@@ -185,17 +233,22 @@ function saveState(saveToRedo = false, isASwap = false) {
 
     state.stageView = Object.assign(Object.create(Object.getPrototypeOf(stageView)), stageView);
     state.stageView.points = Object.assign([], stageView.points);
-    state.stageView.selected = Object.assign([], stageView.selected);
     state.stageView.dancers = JSON.parse(JSON.stringify(stageView.dancers)); //Deep copy needed
     state.stageView.bounds = Object.assign({}, stageView.bounds);
 
     state.timeline = Object.assign(Object.create(Object.getPrototypeOf(timeline)), timeline);
-    state.timeline.formations = Object.assign([], timeline.formations);
-    state.timeline.mouse = Object.assign({}, timeline.mouse);
+    state.timeline.formations = []; //Deep copy needed, but objects have functions
+    timeline.formations.forEach(formation => {
+        state.timeline.formations.push({
+            name: formation.name,
+            slide: formation.slide,
+            ctx: formation.ctx,
+            comment: formation.comment
+        });
+    });
 
-    if (saveToRedo) {
-        redoStack.push(state);
-    } else {
+    if (saveToRedo) redoStack.push(state);
+    else if (!(undoStack.length > 0 && checkStateEquals(undoStack[undoStack.length - 1], state))) {
         undoStack.push(state);
         if (!isASwap) {
             redoStack = [];
@@ -203,11 +256,58 @@ function saveState(saveToRedo = false, isASwap = false) {
         }
     }
 
-    checkUndoRedoDisabled();
-    console.log(undoStack, redoStack);
+    undoRedoEnabledCheck();
+    // console.log("Stacks:", undoStack, redoStack);
+}
+function loadState(state) {
+    // console.log("LOADING", state);
+    // console.log("Replacing", stageView, timeline);
+    let wasDrawing = stageView.drawingMode;
+
+    stageView.drawingMode = state.stageView.drawingMode;
+    stageView.firstPoint = state.stageView.firstPoint;
+    stageView.closed = state.stageView.closed;
+    stageView.currPoint = state.stageView.currPoint;
+    stageView.stage = state.stageView.stage;
+    stageView.points = state.stageView.points;
+    stageView.dancers = state.stageView.dancers;
+    stageView.bounds = state.stageView.bounds;
+
+    timeline.changeFormations(state.timeline.formations);
+    timeline.totalEver = state.timeline.totalEver;
+    if (state.timeline.curr < timeline.formations.length) {
+        timeline.formations.forEach(formation => formation.slide.classList.remove("selected"));
+        timeline.selectFormation(state.timeline.curr);
+    }
+
+
+    checkUndoRedoChanges(wasDrawing, stageView.drawingMode);
+    timeline.resetThumbnails();
+}
+function checkStateEquals(state1, state2) {
+    return state1.stageView.drawingMode === state2.stageView.drawingMode &&
+        JSON.stringify(state1.stageView.firstPoint) === JSON.stringify(state2.stageView.firstPoint) &&
+        state1.stageView.closed === state2.stageView.closed &&
+        state1.stageView.currPoint === state2.stageView.currPoint &&
+        JSON.stringify(state1.stageView.stage) === JSON.stringify(state2.stageView.stage) &&
+        JSON.stringify(state1.stageView.points) === JSON.stringify(state2.stageView.points) &&
+        JSON.stringify(state1.stageView.dancers) === JSON.stringify(state2.stageView.dancers) &&
+        JSON.stringify(state1.stageView.bounds) === JSON.stringify(state2.stageView.bounds) &&
+
+        state1.timeline.curr === state2.timeline.curr &&
+        state1.timeline.totalEver === state2.timeline.totalEver &&
+        JSON.stringify(state1.timeline.formations) === JSON.stringify(state2.timeline.formations);
 }
 
-function checkUndoRedoDisabled() {
+function undoRedoEnabledCheck() {
     dom.undo.disabled = undoStack.length === 0;
     dom.redo.disabled = redoStack.length === 0;
+}
+
+function checkUndoRedoChanges(wasDrawing, isDrawing) {
+    if (wasDrawing !== isDrawing) {
+        if (isDrawing) stageView.startDrawing();
+        else stageView.doneDrawing();
+    }
+    dom.confirmStage.disabled = !stageView.closed;
 }

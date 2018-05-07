@@ -36,47 +36,57 @@
 
 <body>
     <main>
-        
-        <div id="stageDrawing">
-
-        </div>
+        <div id="stageDrawing"> </div>
         <p id="drawingInstruction">Draw your stage shape below:</p>
+        <div id="audience">
+            <img class="audienceItem" src="graphics/Popcorn.png">
+            <img src="graphics/AddIcon.png">
+            <img src="graphics/AddIcon.png">
+            <p>Audience</p>
+            <img src="graphics/AddIcon.png">
+            <img src="graphics/AddIcon.png">
+            <img class="audienceItem" src="graphics/Cola.png">
+        </div>
         <div id="stageDrawingControls">
-            <button id="undo" class="roundedBoxIconButton" disabled>
+            <button id="undo" disabled>
+                <div></div>
                 <p>Undo</p>
             </button>
-            <button id="redo" class="roundedBoxIconButton" disabled>
+            <button id="redo" disabled>
+                <div></div>
                 <p>Redo</p>
             </button>
-            <div id="showGrid" class="gridOption">
-                <p>Show Grid:</p> 
-                <div class="checkbox">
-                    <input type="checkbox" id="showGridCheck" name="Show Grid" checked />
-                    <label for="showGridCheck"></label>
+            <div id="drawingOptions">
+                <div id="showGrid" class="gridOption">
+                    <p>Show Grid:</p> 
+                    <div class="checkbox">
+                        <input type="checkbox" id="showGridCheck" name="Show Grid" checked />
+                        <label for="showGridCheck"></label>
+                    </div>
                 </div>
-            </div>
-            <div id="gridScale" class="gridOption">
-                <p>Grid Scale:</p> <input type="text" value="1" id="gridScaleValue">
-                <select name="units" id="gridScaleUnits">
-                    <option value=40 selected>dancers</option> 
-                    <option value=2.54>in</option>
-                    <option value=30.48>ft</option>
-                    <option value=1>cm</option>
-                    <option value=100>m</option>
-                  </select>
-            </div>
-            <div id="snapToGrid" class="gridOption">
-                <p>Snap to Grid:</p>
-                <div class="checkbox">
-                    <input type="checkbox" id="snapToGridCheck" name="Snap to Grid" checked />
-                    <label for="snapToGridCheck"></label>
+                <div id="gridScale" class="gridOption">
+                    <p>Grid Scale:</p> <input type="text" value="1" id="gridScaleValue">
+                    <select name="units" id="gridScaleUnits">
+                        <option value=40 selected>dancers</option> 
+                        <option value=2.54>in</option>
+                        <option value=30.48>ft</option>
+                        <option value=1>cm</option>
+                        <option value=100>m</option>
+                    </select>
                 </div>
-            </div>
-            <div id="showDancerSize" class="gridOption">
-                <p>Show Dancer Size:</p>
-                <div class="checkbox">
-                    <input type="checkbox" id="showDancerSizeCheck" name="Show Dancer Size" />
-                    <label for="showDancerSizeCheck"></label>
+                <div id="snapToGrid" class="gridOption">
+                    <p>Snap to Grid:</p>
+                    <div class="checkbox">
+                        <input type="checkbox" id="snapToGridCheck" name="Snap to Grid" checked />
+                        <label for="snapToGridCheck"></label>
+                    </div>
+                </div>
+                <div id="showDancerSize" class="gridOption">
+                    <p>Show Dancer Size:</p>
+                    <div class="checkbox">
+                        <input type="checkbox" id="showDancerSizeCheck" name="Show Dancer Size" />
+                        <label for="showDancerSizeCheck"></label>
+                    </div>
                 </div>
             </div>
             <button id="confirmStage" class="roundedBoxIconButton" disabled>
@@ -110,7 +120,7 @@
             <p>Formation Comments</p>
             <textarea id="formationCommentsBox"></textarea>
         </div>
-        <div id="timeline" oncontextmenu="return false;">
+        <div id="timeline" oncontextmenu="return false;" tabindex="0">
             <div id="timelinePaddingLeft"></div>
             <button id="addFormation">
                 <img src="graphics/AddFormationIcon.png" alt="Add Formation">
@@ -127,15 +137,17 @@
                 <p>Delete Formation</p>
             </button>
         </div>
-        <div id="music">
+        <!-- <div id="music">
             <p>Drag and drop music here, or click</p>
             <button id="musicUploadButton">Upload</button>
-        </div>
+        </div> -->
         <canvas id="stageView" class="drawing" oncontextmenu="return false;" tabindex="1"></canvas>
-        <div id="stageViewControls" oncontextmenu="return false;" z-inde="999">
-            <input id="zoomIn" type="image" src="graphics/PlusIcon.png" alt="Zoom In">
-            <input id="zoomOut" type="image" src="graphics/MinusIcon.png" alt="Zoom Out">
-            <input id="resetView" type="image" src="graphics/ResetIcon.png" alt="Reset View">
+        <div id="stageViewControls" oncontextmenu="return false;">
+            <input id="editStage" type="image" src="graphics/EditIcon.png" alt="Edit Stage" title="Edit Stage">
+            <div id="stageViewControlsSpacer"></div>
+            <input id="zoomIn" type="image" src="graphics/PlusIcon.png" alt="Zoom In" title="Zoom In">
+            <input id="zoomOut" type="image" src="graphics/MinusIcon.png" alt="Zoom Out" title="Zoom Out">
+            <input id="resetView" type="image" src="graphics/ResetIcon.png" alt="Reset View" title="Reset View">
         </div>
 
         <ul id="stageLegend">

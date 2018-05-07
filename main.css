@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css?family=Comfortaa|Julius+Sans+One');
 :root { /* Global variables */
     --sans-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --invalid-red: rgb(255, 155, 155);
 }
 
 html, body, main, #stageDrawing {
@@ -15,32 +16,20 @@ main {
     grid-gap: 10px 0;
     grid-template: var(--grid-template);
     --grid-template: 
-        [row1-start] ". . . . . . . ." 10px [row1-end]
-        [row2-start] "header header formationTitle formationTitle formationTitle . . ." 2.5em [row2-end]
-        [row3-start] "groups . canvas canvas canvas . dancerControls ." 120px [row3-end]
-        [row4-start] "groups . canvas canvas canvas . formationComments ." auto [row4-end]
-        [row5-start] "groups . canvas canvas canvas . formationComments ." 100px [row5-end]
-        [row6-start] "stageLegend . timeline timeline timeline . timelineControls ." calc(var(--slide-height) + var(--extra)) [row6-end]
-        [row7-start] "music music music music music music music music" 50px [row7-end]
-        / 5fr 20px 8fr 8fr 8fr 20px 5fr 20px;
+        [row1-start] ". . . . . . . . ." 10px [row1-end]
+        [row2-start] ". header header formationTitle formationTitle formationTitle . . ." 2.5em [row2-end]
+        [row3-start] ". groups . canvas canvas canvas . dancerControls ." 120px [row3-end]
+        [row4-start] ". groups . canvas canvas canvas . formationComments ." auto [row4-end]
+        [row5-start] ". groups . canvas canvas canvas . formationComments ." 100px [row5-end]
+        [row6-start] ". stageLegend . timeline timeline timeline . timelineControls ." calc(var(--slide-height) + var(--extra)) [row6-end]
+        [row7-start] ". music music music music music music music music" 5px [row7-end]
+        / 20px 5fr 20px 8fr 8fr 8fr 20px 5fr 20px;
 }
 
 #stageDrawing {
-    grid-area: 1 / 1 / 8 / 9;
+    grid-area: 1 / 1 / 8 / 10;
     z-index: 999;
 }
-#stageViewControls {
-    grid-area: canvas;
-    justify-self: end;
-    align-self: start;
-    border: none;
-    display: flex;
-    justify-content: space-between;
-    margin: 7px -4px 0 0;
-    z-index: 1002;
-}
-#zoomIn { cursor: zoom-in; }
-#zoomOut { cursor: zoom-out; }
 #stageView {
     grid-area: canvas;
     justify-self: stretch;
@@ -50,7 +39,7 @@ main {
 
 .n1 {
     grid-area: header;
-    color: hsl(210, 80%, 45%);
+    color: #1672ce;
     font-size: calc((11vw) / 7);
     font-family: 'Comfortaa', cursive;
     font-style: italic;
@@ -69,7 +58,6 @@ main {
     font: 1.2em var(--sans-font);
     grid-area: groups;
     text-align: center;
-    padding-left: 20px;
 }
 
 #groupsList {
@@ -89,6 +77,9 @@ main {
     font-size: 2.2em;
     width: 150px;
     border-radius: 1px;
+}
+#formationTitle.invalid {
+    background-color: var(--invalid-red);
 }
 
 #dancerControls { grid-area: dancerControls; }
@@ -117,8 +108,11 @@ button {
     justify-content: center;
     align-content: center;
 }
-.roundedBoxIconButton:active {
+.roundedBoxIconButton:disabled { filter: grayscale(100%) }
+.roundedBoxIconButton:hover:enabled { filter: brightness(102%); }
+.roundedBoxIconButton:active:enabled {
     border: inset 1px;
+    filter: brightness(98%);
 }
 
 textarea {

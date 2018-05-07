@@ -20,75 +20,91 @@ class Timeline {
         this.selectFormation(this.formations.length - 1);
         this.insertFormation();
     }
-    insertFormation() {
-        let newSlide = document.createElement("div");
-        newSlide.classList.add("formationSlide");
-        if (this.curr != -1) {
-            newSlide.classList.add("new");
-            requestAnimationFrame(() => newSlide.classList.remove("new"));
-        }
+    insertFormation(shouldSave = true, isNew = true, otherFormation = null, insertBefore = false) {
+        if (shouldSave) saveState();
+        let newSlide = isNew ? document.createElement("div") : otherFormation.slide;
+        let name = isNew ? document.createElement("p") : otherFormation.name;
+        let ctx = isNew ? null : otherFormation.ctx;
+        let comment = isNew ? "" : otherFormation.comment;
         dom.timeline.appendChild(newSlide);
-        Util.events(newSlide, {
-            "mousedown": evt => {
-                for (let i = 0; i < this.formations.length; i++) {
-                    if (this.formations[i].slide === newSlide) {
-                        this.mouse.slide = i;
-                        break;
-                    }
-                }
-                this.mouse.dragging = true;
-                this.mouse.startX = evt.clientX;
-                this.mouse.x = evt.clientX;
-                this.mouse.lastX = evt.clientX;
-            },
-            "click": evt => this.selectFormation(this.mouse.slide)
-            //TODO: Add keydown event here for things like delete
-        });
 
-        let name = document.createElement("p");
-        name.innerText = `Formation ${this.totalEver++}`;
-        name.resizeMe = () => {
-            let size = 25;
-            
-            let width = stageView.measureText(dom.sansFont, size, "normal", name.innerText);
-            size *= this.slideWidth / width;
-            size = Math.max(Math.min(size, 29), 18);
-            if(!name.parentElement.classList.contains("selected"))
-                size *= this.slideSmaller;
-            name.style.setProperty("font-size", `${size}px`);
-            let bott = 8 * size / 30;
-            name.style.setProperty("padding-bottom", `${bott}px`);
-            width = stageView.measureText(dom.sansFont, size, "normal", name.innerText);
-            if (width > 1.98 * this.slideWidth){
-                name.style.setProperty("line-height", `${20}px`);
-                name.style.setProperty("padding-bottom", `${0}px`);
-            }else{
-                name.style.setProperty("line-height", `${30}px`);
+        let insert = insertBefore ? this.curr : this.curr + 1; //where the new slide will be inserted
+
+        if (isNew) {
+            newSlide.classList.add("formationSlide");
+            if (this.curr != -1) {
+                newSlide.classList.add("new");
+                requestAnimationFrame(() => newSlide.classList.remove("new"));
             }
-        };
-        newSlide.appendChild(name);
+            Util.events(newSlide, {
+                "mousedown": evt => {
+                    for (let i = 0; i < this.formations.length; i++) {
+                        if (this.formations[i].slide === newSlide) {
+                            this.mouse.slide = i;
+                            break;
+                        }
+                    }
+                    this.mouse.dragging = true;
+                    this.mouse.startX = evt.clientX;
+                    this.mouse.x = evt.clientX;
+                    this.mouse.lastX = evt.clientX;
+                },
+                "click": evt => this.selectFormation(this.mouse.slide)
+                //TODO: Add keydown event here for things like delete
+            });
+            name.innerText = `Formation ${this.totalEver++}`;
+            name.resizeMe = () => {
+                let size = 25;
 
-        let img = document.createElement("canvas");
-        img.tabIndex = 1;
-        newSlide.appendChild(img);
-        img.setAttribute("width", parseInt(Util.getStyleValue(img, "width"))); //resize good
-        img.setAttribute("height", parseInt(Util.getStyleValue(img, "height")));
+                let width = stageView.measureText(dom.sansFont, size, "normal", name.innerText);
+                size *= this.slideWidth / width;
+                size = Math.max(Math.min(size, 29), 18);
+                if (!name.parentElement.classList.contains("selected"))
+                    size *= this.slideSmaller;
+                name.style.setProperty("font-size", `${size}px`);
+                let bott = 8 * size / 30;
+                name.style.setProperty("padding-bottom", `${bott}px`);
+                width = stageView.measureText(dom.sansFont, size, "normal", name.innerText);
+                if (width > 1.98 * this.slideWidth) {
+                    name.style.setProperty("line-height", `${20}px`);
+                    name.style.setProperty("padding-bottom", `${0}px`);
+                } else {
+                    name.style.setProperty("line-height", `${30}px`);
+                }
+            };
 
-        let ctx = getTrackedContext(img.getContext('2d', { alpha: false }));
-        stageView.draw(ctx, true);
+            newSlide.appendChild(name);
 
-        let insert = this.curr + 1;
-        this.formations.splice(insert, 0, { name: name, slide: newSlide, ctx: ctx, comment: "" });
-        let positions = {};
-        stageView.dancers.forEach(dancer => {
-            dancer.positions.splice(insert, 0, Object.assign({}, dancer.positions[this.curr]));
-        });
 
-        this.resetOrder();
-        this.selectFormation(insert);
+            let img = document.createElement("canvas");
+            img.tabIndex = 1;
+            newSlide.appendChild(img);
+            img.setAttribute("width", parseInt(Util.getStyleValue(img, "width"))); //resize good
+            img.setAttribute("height", parseInt(Util.getStyleValue(img, "height")));
+
+            ctx = getTrackedContext(img.getContext('2d', { alpha: false }));
+            stageView.draw(ctx, true);
+
+
+            stageView.dancers.forEach(dancer => {
+                dancer.positions.splice(insert, 0, Object.assign({}, dancer.positions[this.curr]));
+            });
+        } else {
+            newSlide.classList.remove("removing");
+        }
+
+
+        this.formations.splice(insert, 0, { name: name, slide: newSlide, ctx: ctx, comment: comment });
+        // console.log("FORMATIONS", this.formations);
+        if (isNew) {
+            this.resetOrder();
+            this.selectFormation(insert);
+        }
         dom.deleteFormation.disabled = this.formations.length === 1;
     }
-    selectFormation(i, deleting = false) {
+    selectFormation(i, deleting = false, changingFormations = false) {
+        // console.log("SELECTING", i);
+
         let formation = this.formations[i];
         if (this.curr !== -1) { //-1 is before first slide added
             this.formations[this.curr].slide.classList.remove("selected");
@@ -121,13 +137,16 @@ class Timeline {
             this.scrollTarget = right;
             scrollAnim(30);
         }
-        stageView.draw();
+        if (!changingFormations) stageView.draw();
     }
-    deleteFormation() {
+    deleteFormation(shouldSave = true) {
+        if (shouldSave) saveState();
         let del = this.formations.splice(this.curr, 1)[0];
-        stageView.dancers.forEach(dancer => {
-            dancer.positions.splice(this.curr, 1);
-        });
+        if (shouldSave) {
+            stageView.dancers.forEach(dancer => {
+                dancer.positions.splice(this.curr, 1);
+            });
+        }
         dom.deleteFormation.disabled = this.formations.length === 1;
         this.resetOrder();
         del.slide.style.setProperty("order", this.curr * 2 - 1);
@@ -136,8 +155,58 @@ class Timeline {
         del.slide.classList.remove("selected");
         del.slide.style.setProperty("z-index", 0);
         del.slide.classList.add("removing");
-        setTimeout(() => dom.timeline.removeChild(del.slide), this.slideT * 1000);
+        if (shouldSave) {
+            setTimeout(() => dom.timeline.removeChild(del.slide), this.slideT * 1000);
+        } else {
+            dom.timeline.removeChild(del.slide);
+        }
     }
+
+    /**Change the set of formations cause an undo */
+    changeFormations(otherFormations) {
+        // console.log("CHANGE", this.formations, otherFormations);
+
+        if (this.formations.length > otherFormations.length) {
+            for (let i = 0; i < otherFormations.length; i++) {
+                if (this.formations[i].name.innerText != otherFormations[i].name.innerText) {
+                    this.selectFormation(i, true, true);
+                    this.deleteFormation(false);
+                    return;
+                }
+            }
+            this.selectFormation(this.formations.length - 1, true, true);
+            this.deleteFormation(false);
+        } else if (this.formations.length < otherFormations.length) {
+            for (let i = 0; i < this.formations.length; i++) {
+                let inserted = false;
+                if (this.formations[i].name.innerText != otherFormations[i].name.innerText) {
+                    inserted = true;
+                    this.selectFormation(i, false, true);
+                    this.insertFormation(false, false, otherFormations[i], true);
+                    return;
+                }
+            }
+            this.selectFormation(this.formations.length - 1, false, true);
+            this.insertFormation(false, false, otherFormations[otherFormations.length - 1]);
+        }
+        this.formations = otherFormations;
+        this.resetOrder();
+    }
+
+    resetThumbnails() {
+        for (let i = 0; i < timeline.formations.length; i++) {
+            let width = parseInt(Util.getStyleValue(timeline.formations[i].ctx.canvas, "width"));
+            let height = parseInt(Util.getStyleValue(timeline.formations[i].ctx.canvas, "height"));
+            if (i === this.curr) {
+                width *= this.slideSmaller;
+                height *= this.slideSmaller;
+            }
+            stageView.resetView(timeline.formations[i].ctx, width, height);
+            stageView.draw(timeline.formations[i].ctx, false, i);
+        }
+    }
+
+
     /** Sets the 'order' css property for all slides based on index in this.formations */
     resetOrder() {
         for (let i = 0; i < this.formations.length; i++) {
@@ -152,6 +221,7 @@ class Timeline {
         let deltaX = this.mouse.x - this.mouse.startX;
         let offsetX = this.mouse.numSwaps * this.slideWidth;
         let swapHelper = (evt, dir) => {
+            saveState();
             let oldCurr = this.formations[this.curr];
             this.mouse.numSwaps += dir;
             let temp = this.formations[this.mouse.slide + dir];

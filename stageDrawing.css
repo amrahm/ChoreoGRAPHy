@@ -3,7 +3,7 @@
 }
 
 #stageDrawingControls {
-    grid-area: 3 / 7 / 6 / 8;
+    grid-area: 3 / 8 / 6 / 9;
     justify-self: stretch;
     /* background: violet; */
     z-index: 1000;
@@ -13,31 +13,52 @@
     --grid-template:
         [row1-start] "undo . redo" min-content [row1-end]
         [row2-start] ". . ." auto [row2-end]
-        [row3-start] "showGrid showGrid showGrid" min-content [row3-end]
-        [row4-start] "gridScale gridScale gridScale" min-content [row4-end]
-        [row5-start] "snapToGrid snapToGrid snapToGrid" min-content [row5-end]
-        [row6-start] "showDancerSize showDancerSize showDancerSize" min-content [row6-end]
-        [row7-start] ". . ." auto [row7-end]
-        [row8-start] "done done done" min-content [row8-end]
+        [row3-start] "drawingOptions drawingOptions drawingOptions" min-content [row3-end]
+        [row4-start] ". . ." auto [row4-end]
+        [row5-start] "done done done" min-content [row5-end]
         / 2fr 1fr 2fr;
+    font: 1em var(--sans-font);
 }
 
-#undo {
-    grid-area: undo;
+#undo { grid-area: undo; }
+#redo { grid-area: redo; }
+#undo > div { background-image: url("graphics/UndoIcon.png"); }
+#redo > div { background-image: url("graphics/RedoIcon.png"); }
+#undo, #redo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: none;
+    background-color: transparent;
+    font: 100% var(--sans-font);
 }
-
-#redo {
-    grid-area: redo;
+#undo > div, #redo > div {
+    width: 40px;
+    height: 40px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center top;
 }
+#undo > p, #redo > p { margin: 0; }
+#undo:disabled > div, #redo:disabled > div { filter: grayscale(100%) brightness(150%); }
+#undo:hover:enabled, #redo:hover:enabled { filter: brightness(120%); }
+#undo:active:enabled, #redo:active:enabled  { filter: brightness(80%); }
 
+#drawingOptions {
+    grid-area: drawingOptions;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    border: 1px solid black;
+    padding: 0 10px 10px 0;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+}
 
 .gridOption {
+    margin-top: 15px;
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    align-content: center;
-    align-self: center;
-    justify-self: flex-end;
     justify-content: flex-end;
     text-align: right;
 }
@@ -86,9 +107,7 @@
     text-align: right;
     padding-right: 5px;
 }
-#gridScaleValue.invalid {
-    background-color: rgb(255, 155, 155);
-}
+#gridScaleValue.invalid { background-color: var(--invalid-red); }
 #gridScale.disabled { color: gray; }
 
 
@@ -106,7 +125,6 @@
 #confirmStage > div { flex: 1 2 50px; }
 #confirmStage > p { flex: 1 1 50%; }
 #confirmStage:active { color: hsl(106, 95%, 43%); }
-#confirmStage:disabled { background-image: url("graphics/DoneIconDisabled.png"); }
 #confirmStage:active:disabled { color: hsl(0, 100%, 32%); }
 
 #drawingInstruction {
@@ -119,10 +137,26 @@
     z-index: 1000;
 }
 
-#stageView.drawing {
-    cursor: crosshair;
-}
+#stageView.drawing { cursor: crosshair; }
+#stageView.select { cursor: default !important; }
 
-#stageView.select {
-    cursor: default !important;
+#audience {
+    display: flex;
+    grid-area: timeline;
+    justify-self: center;
+    align-self: flex-start;
+    align-items: flex-end;
+    font: 2em var(--sans-font);
+    z-index: 1000;
+    border-bottom: 2px solid black;
+}
+#audience > img {
+    width: 40px;
+    height: 40px;
+}
+#audience > p{
+    margin: 0 10px 0 10px;
+}
+.audienceItem {
+    margin: 0 5px 0 5px;
 }
