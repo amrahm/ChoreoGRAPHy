@@ -75,7 +75,7 @@ class GroupsView {
         dom.groupsDiv.appendChild(newGroup);
         this.groups.set(this.curr, newGroup);
         this.actives.set(this.curr, false);
-        newGroupDelete.focus();
+        newGroupActive.focus();
     }
 
     deleteGroup(ind) {
@@ -101,7 +101,7 @@ class GroupsView {
             activeGroup.style.color = "white";
             activeGroup.style.fontWeight = "bold";
             activeGroup.style.borderColor = "aqua";
-            activeButton.style.background = "limegreen";
+            //activeButton.style.background = "limegreen";
             activeButton.style.borderWidth = "5px";
             activeButton.style.borderColor = "white";
             this.active = ind;
