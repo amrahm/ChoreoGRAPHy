@@ -8,7 +8,7 @@
         [row3-start] "image image image image image" auto [row3-end]
         [row4-start] ". prev . next ." min-content [row4-end]
         [row5-start] ". . . . ." 20px [row5-end]
-        / 2fr 1fr 1fr 1fr 2fr;
+        / 2fr 2fr 1fr 2fr 2fr;
 }
 
 #welcome{ grid-area: welcome; }
@@ -23,7 +23,7 @@
 }
 #tutorialButton {
     grid-area: next;
-    font-size: large;
+    font: large var(--sans-font);
     /* width:40%; */
     background-color: #1672ce;
     color: white;
@@ -31,10 +31,31 @@
     border-width: 2px;
     border-color: #1672ce;
     padding: 15px;
+    animation-name: pulsate;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
 }
+
+@keyframes pulsate {
+    from {
+        filter: saturate(100%);
+        box-shadow: none;
+    }
+    50% {
+        filter: saturate(200%);
+        box-shadow: 0 0 40px dodgerblue;
+        transform: scale(1.03);
+        
+    }
+}
+#tutorialButton:hover {
+    animation: none;
+}
+
+
 #backButton {
     grid-area: prev;
-    font-size: large;
+    font: large var(--sans-font);
     /* width:40%; */
     background-color: lightgray;
     color: white;
