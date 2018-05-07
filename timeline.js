@@ -88,6 +88,7 @@ class Timeline {
 
             stageView.dancers.forEach(dancer => {
                 dancer.positions.splice(insert, 0, Object.assign({}, dancer.positions[this.curr]));
+                dancer.groups.splice(insert, 0, dancer.groups[this.curr]);
             });
         } else {
             newSlide.classList.remove("removing");
@@ -145,6 +146,7 @@ class Timeline {
         if (shouldSave) {
             stageView.dancers.forEach(dancer => {
                 dancer.positions.splice(this.curr, 1);
+                dancer.groups.splice(this.curr, 1);
             });
         }
         dom.deleteFormation.disabled = this.formations.length === 1;

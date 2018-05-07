@@ -234,6 +234,7 @@ class StageView extends EventTarget {
         // console.log("DANCERFormation", formation, dancer.positions);
         
         let pos = dancer.positions[formation];
+        let group = dancer.groups[formation];
         ctx.save();
         ctx.translate(pos.x, pos.y);
         ctx.rotate(pos.angle);
@@ -254,7 +255,7 @@ class StageView extends EventTarget {
         }
 
         // this is where dancers are colored; need to edit for group colorings
-        let fillColor = groupsView.getColorOfGroup(dancer.group);
+        let fillColor = groupsView.getColorOfGroup(group);
         ctx.fillStyle = isExample || this.drawingMode ? "rgba(60, 60, 60, 0.7)" : fillColor; 
         // end groupsview interaction
         ctx.beginPath();
@@ -361,6 +362,7 @@ class StageView extends EventTarget {
         let currPt = this.ctx.transformedPoint(this.width / 2, this.height / 2);
         findSafe(currPt, timeline.curr);
         let pos = [];
+        let grp = [];
 
         this.ctx.save();
         this.resetView();
@@ -368,16 +370,18 @@ class StageView extends EventTarget {
         for (let i = 0; i < timeline.formations.length; i++) {
             if (i == timeline.curr) {
                 pos.push({ x: currPt.x, y: currPt.y, angle: 0 });
+                grp.push(this.groups.getActiveColor());
                 continue;
             }
             if (otherPt == null) //try and keep it the same for all other slides if possible
                 otherPt = this.ctx.transformedPoint(this.width / 2, dancerRadius);
             findSafe(otherPt, i, 0);
             pos.push({ x: otherPt.x, y: otherPt.y, angle: 0 });
+            grp.push(-1);
         }
         this.ctx.restore();
 
-        let dancer = { name: "name", positions: pos, group: this.groups.getActiveColor() };
+        let dancer = { name: "name", positions: pos, groups: grp };
         this.dancers.push(dancer);
         this.selected = [dancer];
         dom.removeDancer.disabled = false;
@@ -683,7 +687,7 @@ class StageView extends EventTarget {
             let pos = dancer.positions[timeline.curr];
             if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerRadius) ** 2) {
                 this.selected.push(dancer);
-                dancer.group = this.groups.getActiveColor();
+                dancer.groups[timeline.curr] = this.groups.getActiveColor();
                 this.rotating = null;
                 this.dragging = null;
                 this.moveDancerToEnd(dancer, i);
