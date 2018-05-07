@@ -186,17 +186,20 @@ textarea {
     --c: rgb(247, 247, 247);
     font-family: Consolas;
     border: none;
-    background-color: transparent;
+    background-color: orange;
     color: red;
     font-size: 1em;
     font-weight: bold
 }
+.deleteGroup:hover {
+    background-color: red;
+}
 
 .groupIcon {
-    background: whitesmoke;
     border: 1px solid gray;
+    font-size: 1.2em;
     border-radius: 0px;
-    width:100%;
+    width:auto;
     padding: 10px;
 }
 

@@ -36,6 +36,7 @@
 
 <body>
     <main>
+        
         <div id="stageDrawing">
 
         </div>
@@ -131,7 +132,7 @@
             <button id="musicUploadButton">Upload</button>
         </div>
         <canvas id="stageView" class="drawing" oncontextmenu="return false;" tabindex="1"></canvas>
-        <div id="stageViewControls" oncontextmenu="return false;">
+        <div id="stageViewControls" oncontextmenu="return false;" z-inde="999">
             <input id="zoomIn" type="image" src="graphics/PlusIcon.png" alt="Zoom In">
             <input id="zoomOut" type="image" src="graphics/MinusIcon.png" alt="Zoom Out">
             <input id="resetView" type="image" src="graphics/ResetIcon.png" alt="Reset View">
@@ -147,5 +148,7 @@
     </main>
 
 </body>
+<script src="tutorial.js"></script>
+
 
 </html>
