@@ -91,10 +91,8 @@ class GroupsView {
                 this.active = ind;
             } else {
                 this.actives.set(ind, false);
-                activeGroup.style.boxShadow = "none";
-                activeGroup.style.color = "black";
-                activeGroup.style.fontWeight = "normal";
-                activeGroup.style.borderColor = "gray";
+                activeGroup.style = "revert";
+                activeGroup.style.background = this.colors.get(ind % this.colors.size);
                 this.active = -1;
             }
         }
