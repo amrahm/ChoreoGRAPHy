@@ -52,8 +52,13 @@ Util.events(document, {
         dom.addGroup = Util.one("#addGroup");
         dom.groupsDiv = Util.one("#groupsDiv");
         dom.audience = Util.one("#audience");
+        dom.dancerHelp = Util.one("#dancerHelp");
+        dom.timelineHelp = Util.one("#timelineHelp");
+        dom.groupsHelp = Util.one("#groupsHelp");
 
-
+        dom.dancerHelp.addEventListener("click", () => showTutorial(1));
+        dom.timelineHelp.addEventListener("click", () => showTutorial(2));
+        dom.groupsHelp.addEventListener("click", () => showTutorial(3));
         dom.undo.addEventListener("click", () => undo());
         dom.redo.addEventListener("click", () => redo());
         dom.showGrid.addEventListener("change", () => stageView.showGridPress());

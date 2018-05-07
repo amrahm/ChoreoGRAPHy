@@ -63,6 +63,7 @@ class GroupsView {
         this.groups.set(this.curr, newGroup);
         this.actives.set(this.curr, false);
         newGroup.focus();
+        this.activateGroup(this.curr);
     }
 
     deleteGroup(ind) {
@@ -70,6 +71,7 @@ class GroupsView {
         dom.groupsDiv.removeChild(document.getElementById("group" + groupToKill));
         this.groups.delete(groupToKill);
         this.actives.delete(groupToKill);
+        stageView.draw();
     }
 
     activateGroup(ind) {
@@ -84,15 +86,17 @@ class GroupsView {
                     }
                 }            
                 this.actives.set(ind, true);
-                activeGroup.style.boxShadow = "0px 0px 20px rgba(0, 89, 255, 0.7) inset";
-                activeGroup.style.color = "white";
-                activeGroup.style.fontWeight = "bold";
-                activeGroup.style.borderColor = "aqua";
+                // activeGroup.style.boxShadow = "0px 0px 40px rgba(0, 89, 255, 0.7) inset";
+                // activeGroup.style.color = "white";
+                // activeGroup.style.fontWeight = "bold";
+                // activeGroup.style.borderColor = "aqua";
+                activeGroup.classList.add("active");
                 this.active = ind;
             } else {
                 this.actives.set(ind, false);
-                activeGroup.style = "revert";
-                activeGroup.style.background = this.colors.get(ind % this.colors.size);
+                activeGroup.classList.remove("active");
+                // activeGroup.style = "revert";
+                // activeGroup.style.background = this.colors.get(ind % this.colors.size);
                 this.active = -1;
             }
         }

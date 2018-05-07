@@ -39,7 +39,8 @@
             <div id="walkthrough" class="n1">Let's do a quick walkthrough before we start.</div>
             <div id="tutorialImage"></div>
             <button id="backButton" disabled onclick="previousSlide()">Back</button>
-            <button id="tutorialButton" onclick="nextSlide()">Next</button>
+            <button id="nextButton" onclick="nextSlide()">Next</button>
+            <button id="doneButton" onclick="hideTutorial()">Done</button>
         </div>
         <div id="stageDrawing"> </div>
         <p id="drawingInstruction">Draw your stage shape below:</p>
@@ -155,13 +156,20 @@
             <input id="resetView" type="image" src="graphics/ResetIcon.png" alt="Reset View" title="Reset View">
         </div>
 
-        <ul id="stageLegend">
-            <li>Click/drag to select dancers</li>
-            <!-- <li>Click face to rotate dancer</li> -->
-            <li>Double click to rename</li>
-            <li>Right click to pan</li>
-            <li>Scroll to zoom</li>
-        </ul>
+        <div id="stageLegend">
+            <button id="dancerHelp" class="roundedBoxIconButton">
+                <div></div>
+                <p>Dancers</p>
+            </button>
+            <button id="timelineHelp" class="roundedBoxIconButton">
+                <div></div>
+                <p>Timeline</p>
+            </button>
+            <button id="groupsHelp" class="roundedBoxIconButton">
+                <div></div>
+                <p>Groups</p>
+            </button>
+        </div>
     </main>
 
 </body>

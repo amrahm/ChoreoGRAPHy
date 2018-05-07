@@ -232,7 +232,7 @@ class StageView extends EventTarget {
     /** Draw a dancer at their position in the specified formation */
     drawDancer(ctx, dancer, formation, isExample = false, r = dancerRadius) {
         // console.log("DANCERFormation", formation, dancer.positions);
-        
+
         let pos = dancer.positions[formation];
         let group = dancer.groups[formation];
         ctx.save();
@@ -256,7 +256,7 @@ class StageView extends EventTarget {
 
         // this is where dancers are colored; need to edit for group colorings
         let fillColor = groupsView.getColorOfGroup(group);
-        ctx.fillStyle = isExample || this.drawingMode ? "rgba(60, 60, 60, 0.7)" : fillColor; 
+        ctx.fillStyle = isExample || this.drawingMode ? "rgba(60, 60, 60, 0.7)" : fillColor;
         // end groupsview interaction
         ctx.beginPath();
         ctx.arc(0, 0, r, 0, Math.PI * 2);
@@ -475,7 +475,6 @@ class StageView extends EventTarget {
     }
 
     mousedown(mouse, buttons) {
-        let activeColor = groupsView.getActiveColor();
         if (buttons === 1) saveState();
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
         this.lastM = mouseT;
@@ -660,7 +659,11 @@ class StageView extends EventTarget {
             this.selected = this.dancers.filter(dancer => {
                 let pos = dancer.positions[timeline.curr];
                 let danceT = this.ctx.untransformedPoint(pos.x, pos.y);
-                return this.ctx.isPointInPath(this.selectionBox, danceT.x, danceT.y);
+                if (this.ctx.isPointInPath(this.selectionBox, danceT.x, danceT.y)) {
+                    this.setColor(dancer);
+                    return true;
+                }
+                return false;
             });
             let n = 1;
             this.selected.forEach(dancer => {
@@ -687,7 +690,7 @@ class StageView extends EventTarget {
             let pos = dancer.positions[timeline.curr];
             if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerRadius) ** 2) {
                 this.selected.push(dancer);
-                dancer.groups[timeline.curr] = this.groups.getActiveColor();
+                this.setColor(dancer);
                 this.rotating = null;
                 this.dragging = null;
                 this.moveDancerToEnd(dancer, i);
@@ -699,6 +702,17 @@ class StageView extends EventTarget {
         this.draw();
         dom.removeDancer.disabled = this.selected.length === 0;
     }
+    setColor(dancer) {
+        if (this.groups.getActiveColor() !== -1) {
+            if (dancer.groups[timeline.curr] === this.groups.getActiveColor()) {
+                dancer.groups[timeline.curr] = -1;
+            }
+            else {
+                dancer.groups[timeline.curr] = this.groups.getActiveColor();
+            }
+        }
+    }
+
     /** Moves the specified dancer to the end of the dancers array.
      * @param {*} dancer the dancer to move
      * @param {*} i the index of that dancer

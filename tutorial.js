@@ -1,17 +1,23 @@
 var tutorialSlides = [
-    "tutorial_drawing.png",
-    "tutorial_dancers.png",
-    "tutorial_formations.png",
-    "tutorial_groups.png"
+    "tutorial/StageDrawing.gif",
+    "tutorial/DancerHelp.gif",
+    "tutorial/TimelineHelp.gif",
+    "tutorial/GroupsHelp.gif"
 ]
 
 let tutorialDiv = document.getElementById("tutorial");
 let tutorialImage = document.getElementById("tutorialImage");
-let tutorialButton = document.getElementById("tutorialButton");
+let nextButton = document.getElementById("nextButton");
 let backButton = document.getElementById("backButton");
 let stageDrawing = document.getElementById("notTutorial");
 var size = this.tutorialSlides.length;
 var currentIndex = 0;
+
+function showTutorial(index) {
+    currentIndex = index - 1;
+    this.nextSlide();
+    tutorialDiv.style.display = "grid";    
+}
 
 function hideTutorial() {
     // console.log("hiding tutorial");
@@ -27,7 +33,7 @@ function nextSlide() {
         tutorialImage.style.setProperty("background-image", `url(${tutorialSlides[currentIndex]})`);
         // console.log(currentIndex);
         if (currentIndex === size - 1) {
-            tutorialButton.innerHTML = "Done";
+            nextButton.innerHTML = "Done";
         }
     } else {
         hideTutorial();
@@ -36,7 +42,7 @@ function nextSlide() {
 
 function previousSlide() {
     // console.log("back button clicked");
-    tutorialButton.innerHTML = "Next";
+    nextButton.innerHTML = "Next";
     currentIndex--;
     tutorialImage.style.setProperty("background-image", `url(${tutorialSlides[currentIndex]})`);
     // console.log(currentIndex);

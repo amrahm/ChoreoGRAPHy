@@ -114,7 +114,15 @@ textarea {
 #stageLegend { 
     grid-area: stageLegend;
     font: 1em var(--sans-font);
+    display: flex;
+    flex-direction: column;
+    justify-items: stretch;
 }
+#dancerHelp, #timelineHelp, #groupsHelp{ background-image: url("graphics/HelpIcon.png"); }
+#dancerHelp > div, #timelineHelp > div, #groupsHelp > div { flex: 1 2 0px; }
+#dancerHelp > p, #timelineHelp > p, #groupsHelp > p { flex: 1 1 50%; }
+
+
 #formationComments {
     grid-area: formationComments;
     margin-top: 10px;

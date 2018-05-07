@@ -137,6 +137,22 @@
     width: 0px;
 }
 
+.formationSlide.dragging{
+    transform: translate(var(--deltaX), 0);
+    transition: transform 0s;
+}
+.formationSlide.draggingEnd{
+    transition: all var(--slide-t);
+    animation-name: dragEnd;
+    animation-duration: var(--slide-t);
+    animation-iteration-count: 1;
+}
+@keyframes dragEnd {
+    to {
+        transform: translate(0, 0);
+    }
+}
+
 #timelinePaddingLeft {
     order: -1;
     flex-grow: 1.5;

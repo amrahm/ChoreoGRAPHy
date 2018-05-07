@@ -54,14 +54,3 @@
 #removeDancer:active { color: hsl(0, 100%, 32%); }
 #addDancer > div , #removeDancer > div { flex: 1 2 0; }
 #addDancer > p , #removeDancer > p { flex: 1 1 60%; }
-
-
-#stageLegend {
-    overflow: auto;
-    margin: 0 0 0 0;
-    padding: 0 0 0 20px;
-}
-#stageLegend > li {
-    margin: 0;
-    text-align: start;
-}

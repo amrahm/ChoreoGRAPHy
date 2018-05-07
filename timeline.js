@@ -222,13 +222,16 @@ class Timeline {
     dragSlide(evt) {
         let deltaX = this.mouse.x - this.mouse.startX;
         let offsetX = this.mouse.numSwaps * this.slideWidth;
+        let slide = this.formations[this.mouse.slide].slide;
         let swapHelper = (evt, dir) => {
             saveState();
+            slide.style.setProperty("--deltaX", `${deltaX - offsetX}px`);
             let oldCurr = this.formations[this.curr];
             this.mouse.numSwaps += dir;
             let temp = this.formations[this.mouse.slide + dir];
             this.formations[this.mouse.slide + dir] = this.formations[this.mouse.slide];
             this.formations[this.mouse.slide] = temp;
+
             stageView.dancers.forEach(dancer => {
                 temp = dancer.positions[this.mouse.slide + dir];
                 dancer.positions[this.mouse.slide + dir] = dancer.positions[this.mouse.slide];
@@ -243,9 +246,25 @@ class Timeline {
             this.mouse.slide += dir;
             this.resetOrder();
         };
-        if (deltaX > this.slideWidth / 2 + offsetX && this.mouse.slide < this.formations.length - 1)
+        if (deltaX > this.slideWidth / 2 + offsetX && this.mouse.slide < this.formations.length - 1) {
             swapHelper(evt, 1);
-        else if (deltaX < -this.slideWidth / 2 + offsetX && this.mouse.slide > 0)
+        } else if (deltaX < -this.slideWidth / 2 + offsetX && this.mouse.slide > 0) {
             swapHelper(evt, -1);
+        } else if (Math.abs(deltaX) > 3) {
+            if (!slide.classList.contains("dragging")) {
+                let dragEndHelper = slide => {
+                    slide.classList.add("dragEnding");
+                    slide.classList.remove("dragging");
+                    let promise = Util.afterAnimation(slide, "dragEnd");
+                    promise.then(() => {
+                        slide.classList.remove("dragEnding");
+                    });
+                }
+                slide.addEventListener("mouseup", () => dragEndHelper(slide));
+                slide.addEventListener("mouseleave", () => dragEndHelper(slide));
+            }
+            slide.classList.add("dragging");
+            slide.style.setProperty("--deltaX", `${deltaX - offsetX}px`);
+        }
     }
 }

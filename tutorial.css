@@ -3,12 +3,12 @@
     display: grid;
     grid-template: var(--grid-template);
     --grid-template:
-        [row1-start] "welcome welcome welcome welcome welcome" min-content [row1-end]
-        [row2-start] "walkthrough walkthrough walkthrough walkthrough walkthrough" min-content [row2-end]
-        [row3-start] "image image image image image" auto [row3-end]
-        [row4-start] ". prev . next ." min-content [row4-end]
-        [row5-start] ". . . . ." 20px [row5-end]
-        / 2fr 2fr 1fr 2fr 2fr;
+        [row1-start] "welcome welcome welcome welcome welcome welcome welcome" min-content [row1-end]
+        [row2-start] "walkthrough walkthrough walkthrough walkthrough walkthrough walkthrough walkthrough" min-content [row2-end]
+        [row3-start] "image image image image image image image" auto [row3-end]
+        [row4-start] ". prev . next . done ." min-content [row4-end]
+        [row5-start] ". . . . . . ." 20px [row5-end]
+        / 5fr 3fr 1fr 3fr 2fr 2fr 1fr;
 }
 
 #welcome{ grid-area: welcome; }
@@ -16,12 +16,23 @@
 
 #tutorialImage{
     grid-area: image;
-    background-image: url("tutorial_drawing.png");
+    background-image: url("tutorial/StageDrawing.gif");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center top;
 }
-#tutorialButton {
+
+#doneButton {
+    grid-area: done;
+    background-color: #1672ce;
+    color: white;
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: #1672ce;
+    padding: 15px;
+}
+
+#nextButton {
     grid-area: next;
     font: large var(--sans-font);
     /* width:40%; */
@@ -43,12 +54,10 @@
     }
     50% {
         filter: saturate(200%);
-        box-shadow: 0 0 40px dodgerblue;
-        transform: scale(1.03);
-        
+        box-shadow: 0 0 20px dodgerblue;
     }
 }
-#tutorialButton:hover {
+#nextButton:hover {
     animation: none;
 }
 
@@ -65,13 +74,13 @@
     padding: 15px;
 }
 
-#tutorialButton:hover, #backButton:hover { border-color: white; }
-#backButton:disabled {
+#nextButton:hover, #backButton:hover { border-color: white; }
+#backButton:disabled, #nextButton:disabled {
     color: gray;
     border-color: gray;
 }
 
-#tutorialButton:active {
+#nextButton:active {
     color: #1672ce;
     background-color: white;
 }
