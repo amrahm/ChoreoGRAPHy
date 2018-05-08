@@ -272,10 +272,10 @@ class Timeline {
             if (this.formations.length < 2) return;
             this.deleteFormation();
         }
-        if (evt.keyCode === 37) { //left
+        if (evt.keyCode === 37 && this.curr > 0) { //left
             this.selectFormation(this.curr - 1);
             return evt.preventDefault() && false;
-        } else if (evt.keyCode === 39) { //right
+        } else if (evt.keyCode === 39 && this.curr < this.formations.length - 1) { //right
             this.selectFormation(this.curr + 1);
             return evt.preventDefault() && false;
         }
