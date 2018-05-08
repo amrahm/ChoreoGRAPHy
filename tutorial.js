@@ -34,6 +34,8 @@ function nextSlide() {
         // console.log(currentIndex);
         if (currentIndex === size - 1) {
             nextButton.innerHTML = "Done";
+        }else{
+            nextButton.innerHTML = "Next";            
         }
     } else {
         hideTutorial();
