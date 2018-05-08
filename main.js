@@ -105,10 +105,10 @@ Util.events(document, {
         });
         Util.events(dom.stageView, {
             "mousedown": evt => {
-                stageView.mousedown(getCanvasCoords(dom.stageView, evt), evt.buttons);
+                stageView.mousedown(getCanvasCoords(dom.stageView, evt), evt.buttons, evt.ctrlKey || evt.shiftKey);
             },
             "click": evt => {
-                stageView.click(getCanvasCoords(dom.stageView, evt));
+                stageView.click(getCanvasCoords(dom.stageView, evt), evt.ctrlKey || evt.shiftKey);
             },
             "dblclick": evt => {
                 stageView.dblclick(getCanvasCoords(dom.stageView, evt));
@@ -130,6 +130,7 @@ Util.events(document, {
         });
         Util.events(dom.timeline, {
             "keydown": evt => {
+                timeline.keydown(evt);
                 checkUndoRedo(evt);
             },
             "mouseenter": evt => {
@@ -150,7 +151,7 @@ Util.events(document, {
         window.onresize = () => stageView.respondCanvas();
     },
     "mousemove": evt => {
-        if (timeline.mouse.dragging) {
+        if (timeline !== null && timeline.mouse.dragging) {
             timeline.mouse.x = evt.clientX;
             timeline.dragSlide(evt);
             return evt.preventDefault() && false;
@@ -167,7 +168,7 @@ Util.events(document, {
         if (wasDragging) return evt.preventDefault() && false;
     },
     "mouseenter": evt => {
-        let wasDragging = timeline.mouse.dragging || stageView.isDragging();
+        let wasDragging = (timeline !== null && timeline.mouse.dragging) || stageView.isDragging();
         stageView.mouseenter(evt.buttons);
         if (wasDragging) return evt.preventDefault() && false;
     },

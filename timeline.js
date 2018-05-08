@@ -50,7 +50,6 @@ class Timeline {
                     this.mouse.lastX = evt.clientX;
                 },
                 "click": evt => this.selectFormation(this.mouse.slide)
-                //TODO: Add keydown event here for things like delete
             });
             name.innerText = `Formation ${this.totalEver++}`;
             name.resizeMe = () => {
@@ -265,6 +264,20 @@ class Timeline {
             }
             slide.classList.add("dragging");
             slide.style.setProperty("--deltaX", `${deltaX - offsetX}px`);
+        }
+    }
+
+    keydown(evt) {
+        if (evt.keyCode === 46) { //:::DELETE (Del)
+            if (this.formations.length < 2) return;
+            this.deleteFormation();
+        }
+        if (evt.keyCode === 37) { //left
+            this.selectFormation(this.curr - 1);
+            return evt.preventDefault() && false;
+        } else if (evt.keyCode === 39) { //right
+            this.selectFormation(this.curr + 1);
+            return evt.preventDefault() && false;
         }
     }
 }

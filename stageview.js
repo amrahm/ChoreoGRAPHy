@@ -1,6 +1,6 @@
 //TODO: Zoom min and max
 //TODO: Front view
-//TODO: CTRL/Shift for selecting multiple, del for removing dancer
+//TODO: CTRL/Shift for selecting multiple
 
 const dancerRadius = 20; //radius of dancer, in centimeters
 const dancerFontSize = 25; //in px
@@ -474,7 +474,7 @@ class StageView extends EventTarget {
         return this.inRadius(point, snap, distThreshold) ? snap : point;
     }
 
-    mousedown(mouse, buttons) {
+    mousedown(mouse, buttons, adding) {
         if (buttons === 1) saveState();
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
         this.lastM = mouseT;
@@ -548,14 +548,15 @@ class StageView extends EventTarget {
                 let pos = dancer.positions[timeline.curr];
                 if (this.inRadius(mouseT, pos, dancerRadius)) {
                     this.moveDancerToEnd(dancer, i);
-                    if (this.selected.indexOf(dancer) === -1) this.selected = [];
+                    if (this.selected.indexOf(dancer) === -1 && !adding) this.selected = [];
                     this.dragging = dancer;
                     this.draw();
                     return;
                 }
             }
             //No dancer was clicked on, so start box select:
-            this.selected = [];
+            if (!adding)
+                this.selected = [];
             this.selP1 = mouseT;
         } else {//other click, probably right or middle :::PANNING/ZOOMING
             this.pageDrag = this.lastM;
@@ -681,21 +682,27 @@ class StageView extends EventTarget {
         if (!this.isDragging()) return;
         if (buttons != 1) this.mouseup();
     }
-    click(mouse) {
+    click(mouse, adding) {
         if (this.dragged || this.drawingMode) return;
         let mouseT = this.ctx.transformedPoint(mouse.x, mouse.y);
-        this.selected = [];
+        if (!adding)
+            this.selected = [];
         for (let i = this.dancers.length - 1; i >= 0; i--) {
             let dancer = this.dancers[i];
             let pos = dancer.positions[timeline.curr];
             if ((pos.x - mouseT.x) ** 2 + (pos.y - mouseT.y) ** 2 < (dancerRadius) ** 2) {
-                this.selected.push(dancer);
+                let ind = this.selected.indexOf(dancer);
+                if (adding && ind !== -1) {
+                    this.selected.splice(ind, 1);
+                } else {
+                    this.selected.push(dancer);
+                }
                 this.setColor(dancer);
                 this.rotating = null;
                 this.dragging = null;
                 this.moveDancerToEnd(dancer, i);
-                this.draw();
                 dom.removeDancer.disabled = this.selected.length === 0;
+                this.draw();
                 return;
             }
         }
@@ -805,6 +812,9 @@ class StageView extends EventTarget {
                 this.draw();
                 return evt.preventDefault() && false;
             }
+        }
+        if (evt.keyCode === 46) { //Del
+            this.removeDancer();
         }
     }
     mousedownOutside() {
