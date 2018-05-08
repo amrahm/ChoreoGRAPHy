@@ -85,10 +85,12 @@
 @keyframes pulse {
     from {
         filter: saturate(100%);
-        box-shadow: 0px 0px 40px rgb(255, 255, 255) inset;
+        box-shadow: 0px 0px 40px rgb(255, 255, 255) inset,
+        0px 0px 10px rgb(0, 0, 0) inset;
     }
     50% {
-        filter: saturate(120%);
-        box-shadow: 0px 0px 100px rgb(255, 255, 255) inset;
+        filter: saturate(160%);
+        box-shadow: 0px 0px 100px rgb(255, 255, 255) inset,
+        0px 0px 40px rgb(0, 0, 0) inset;
     }
 }
