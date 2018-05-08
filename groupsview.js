@@ -5,15 +5,22 @@ class GroupsView {
         this.curr = 0;
         this.active = -1;
         this.colors = new Map([
-            [0,"yellowgreen"],
-            [1, "skyblue"],
-            [2, "magenta"],
-            [3, "orangered"],
-            [4, "turquoise"],
-            [5, "salmon"],
-            [6, "mediumaquamarine"],
-            [7, "royalblue"],
-            [8, "gold"]
+            [0,"skyblue"],
+            [1, "yellowgreen"],
+            [2, "#85144b"],
+            [3, "mediumaquamarine"],
+            [4, "royalblue"],
+            [5, "orangered"],
+            [6, "salmon"],
+            [7, "magenta"],
+            [8, "#FF851B"],
+            [9, "gold"],
+            [10, "turquoise"],
+            [11, "olive"],
+            [12, "#01FF70"],
+            [13, "#944743"],
+            [14, "#DBB1CD"],
+            [15, "#EC9787"]
         ]);
     }
 
